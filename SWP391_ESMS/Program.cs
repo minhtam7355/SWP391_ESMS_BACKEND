@@ -19,12 +19,14 @@ builder.Services.AddAuthentication(x =>
     x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(x =>
 {
+    x.RequireHttpsMetadata = false;
+    x.SaveToken = true;
     x.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidIssuer = config["JwtSettings:Issuer"],
-        ValidAudience = config["JwtSettings:Audience"],
+        ValidIssuer = config["Jwt:Issuer"],
+        ValidAudience = config["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey
-            (Encoding.UTF8.GetBytes(config["JwtSettings:Key"]!)),
+            (Encoding.UTF8.GetBytes(config["Jwt:Key"]!)),
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
@@ -42,7 +44,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
-    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+    policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
 //Connect to the database
 builder.Services.AddDbContext<ESMSDbContext>(option =>
@@ -51,6 +53,7 @@ builder.Services.AddDbContext<ESMSDbContext>(option =>
 
 builder.Services.AddAutoMapper(typeof(Program));
 
+builder.Services.AddScoped<IAccessRepository, AccessRepository>();
 builder.Services.AddScoped<IExamSessionRepository, ExamSessionRepository>();
 builder.Services.AddScoped<IMajorRepository, MajorRepository>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
@@ -65,6 +68,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseCors();
 
 app.UseHttpsRedirection();
 

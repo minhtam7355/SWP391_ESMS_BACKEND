@@ -1,8 +1,8 @@
 ﻿namespace SWP391_ESMS.Models.ViewModels
 {
-    public class StudentModel
+    public class UserInfo
     {
-        public Guid StudentId { get; set; }
+        public Guid UserId { get; set; }
 
         public string? Username { get; set; }
 
@@ -22,7 +22,6 @@
 
         public string? ProfilePicture { get; set; }
 
-        public Guid? MajorId { get; set; }
-
+        public string? Role { get; set; }
     }
 }

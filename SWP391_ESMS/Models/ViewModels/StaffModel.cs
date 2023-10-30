@@ -24,6 +24,5 @@
 
         public string? StaffRole { get; set; }
 
-        public virtual ICollection<ExamSessionModel> ExamSessions { get; set; } = new List<ExamSessionModel>();
     }
 }
