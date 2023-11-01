@@ -6,8 +6,6 @@
 
         public string? Username { get; set; }
 
-        public string? PasswordHash { get; set; }
-
         public string? Email { get; set; }
 
         public string? FullName { get; set; }
@@ -23,6 +21,8 @@
         public string? ProfilePicture { get; set; }
 
         public Guid? MajorId { get; set; }
+
+        public string? MajorName { get; set; }
 
     }
 }

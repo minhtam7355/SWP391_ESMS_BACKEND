@@ -17,6 +17,7 @@ namespace SWP391_ESMS.Helpers
             CreateMap<Course, CourseModel>()
                 .ForMember(dest => dest.CourseId, opt => opt.MapFrom(src => src.CourseId))
                 .ForMember(dest => dest.CourseName, opt => opt.MapFrom(src => src.CourseName))
+                .ForMember(dest => dest.MajorId, opt => opt.MapFrom(src => src.MajorId))
                 .ForMember(dest => dest.MajorName, opt => opt.MapFrom(src => src.Major!.MajorName));
 
             CreateMap<AddCourseModel, Course>()
@@ -89,7 +90,31 @@ namespace SWP391_ESMS.Helpers
             CreateMap<Student, StudentModel>()
                 .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.StudentId))
                 .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
-                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.PasswordHash))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+                .ForMember(dest => dest.HomeAddress, opt => opt.MapFrom(src => src.HomeAddress))
+                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
+                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender))
+                .ForMember(dest => dest.ProfilePicture, opt => opt.MapFrom(src => src.ProfilePicture))
+                .ForMember(dest => dest.MajorId, opt => opt.MapFrom(src => src.MajorId))
+                .ForMember(dest => dest.MajorName, opt => opt.MapFrom(src => src.Major!.MajorName));
+
+            CreateMap<AddStudentModel, Student>()
+                .ForMember(dest => dest.StudentId, opt => opt.MapFrom(_ => Guid.NewGuid()))
+                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
+                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => BC.EnhancedHashPassword(src.Password, 13)))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+                .ForMember(dest => dest.HomeAddress, opt => opt.MapFrom(src => src.HomeAddress))
+                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
+                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender))
+                .ForMember(dest => dest.ProfilePicture, opt => opt.MapFrom(src => src.ProfilePicture))
+                .ForMember(dest => dest.MajorId, opt => opt.MapFrom(src => src.MajorId));
+
+            CreateMap<UpdateStudentModel, Student>()
+                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
@@ -102,7 +127,31 @@ namespace SWP391_ESMS.Helpers
             CreateMap<Teacher, TeacherModel>()
                 .ForMember(dest => dest.TeacherId, opt => opt.MapFrom(src => src.TeacherId))
                 .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
-                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.PasswordHash))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+                .ForMember(dest => dest.HomeAddress, opt => opt.MapFrom(src => src.HomeAddress))
+                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
+                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender))
+                .ForMember(dest => dest.ProfilePicture, opt => opt.MapFrom(src => src.ProfilePicture))
+                .ForMember(dest => dest.MajorId, opt => opt.MapFrom(src => src.MajorId))
+                .ForMember(dest => dest.MajorName, opt => opt.MapFrom(src => src.Major!.MajorName));
+
+            CreateMap<AddTeacherModel, Teacher>()
+                .ForMember(dest => dest.TeacherId, opt => opt.MapFrom(_ => Guid.NewGuid()))
+                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
+                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => BC.EnhancedHashPassword(src.Password, 13)))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+                .ForMember(dest => dest.HomeAddress, opt => opt.MapFrom(src => src.HomeAddress))
+                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
+                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender))
+                .ForMember(dest => dest.ProfilePicture, opt => opt.MapFrom(src => src.ProfilePicture))
+                .ForMember(dest => dest.MajorId, opt => opt.MapFrom(src => src.MajorId));
+
+            CreateMap<UpdateTeacherModel, Teacher>()
+                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
@@ -115,7 +164,30 @@ namespace SWP391_ESMS.Helpers
             CreateMap<Staff, StaffModel>()
                 .ForMember(dest => dest.StaffId, opt => opt.MapFrom(src => src.StaffId))
                 .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
-                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.PasswordHash))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+                .ForMember(dest => dest.HomeAddress, opt => opt.MapFrom(src => src.HomeAddress))
+                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
+                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender))
+                .ForMember(dest => dest.ProfilePicture, opt => opt.MapFrom(src => src.ProfilePicture))
+                .ForMember(dest => dest.StaffRole, opt => opt.MapFrom(src => src.StaffRole));
+
+            CreateMap<AddStaffModel, Staff>()
+                .ForMember(dest => dest.StaffId, opt => opt.MapFrom(_ => Guid.NewGuid()))
+                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
+                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => BC.EnhancedHashPassword(src.Password, 13)))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+                .ForMember(dest => dest.HomeAddress, opt => opt.MapFrom(src => src.HomeAddress))
+                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
+                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender))
+                .ForMember(dest => dest.ProfilePicture, opt => opt.MapFrom(src => src.ProfilePicture))
+                .ForMember(dest => dest.StaffRole, opt => opt.MapFrom(src => src.StaffRole));
+
+            CreateMap<UpdateStaffModel, Staff>()
+                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
@@ -168,9 +240,20 @@ namespace SWP391_ESMS.Helpers
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.StaffRole));
 
             CreateMap<SignupModel, Student>()
+                .ForMember(dest => dest.StudentId, opt => opt.MapFrom(_ => Guid.NewGuid()))
                 .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
+                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => BC.EnhancedHashPassword(src.Password, 13)))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName));
+
+            CreateMap<ChangePasswordModel, Student>()
+                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => BC.EnhancedHashPassword(src.NewPassword, 13)));
+
+            CreateMap<ChangePasswordModel, Teacher>()
+                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => BC.EnhancedHashPassword(src.NewPassword, 13)));
+
+            CreateMap<ChangePasswordModel, Staff>()
+                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => BC.EnhancedHashPassword(src.NewPassword, 13)));
         }
     }
 }

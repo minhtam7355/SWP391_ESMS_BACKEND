@@ -59,6 +59,9 @@ builder.Services.AddScoped<IMajorRepository, MajorRepository>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<IExamRoomRepository, ExamRoomRepository>();
 builder.Services.AddScoped<IExamShiftRepository, ExamShiftRepository>();
+builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
+builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 
 var app = builder.Build();
 

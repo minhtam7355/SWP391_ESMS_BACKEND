@@ -27,7 +27,7 @@ namespace SWP391_ESMS.Repositories
 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }

@@ -55,16 +55,12 @@ namespace SWP391_ESMS.Repositories
             {
                 var newStudent = _mapper.Map<Student>(model);
 
-                newStudent.StudentId = Guid.NewGuid();
-                newStudent.PasswordHash = BC.EnhancedHashPassword(model.Password, 13);
-                // Add A Default Profile Pic
-
                 await _dbContext.Students.AddAsync(newStudent);
                 await _dbContext.SaveChangesAsync();
 
                 return true;
 
-            }catch(Exception ex)
+            }catch (Exception)
             {
                 return false;
             }

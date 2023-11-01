@@ -6,6 +6,8 @@
 
         public string? CourseName { get; set; }
 
+        public Guid? MajorId { get; set; }
+
         public string? MajorName { get; set; }
 
     }

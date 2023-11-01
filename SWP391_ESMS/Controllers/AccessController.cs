@@ -24,7 +24,7 @@ namespace SWP391_ESMS.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost]
+        [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
             IActionResult response = Unauthorized();
@@ -72,8 +72,27 @@ namespace SWP391_ESMS.Controllers
             {
                 return "Invalid credentials";
             }
-
         }
 
+        [AllowAnonymous]
+        [HttpPost("signup")]
+        public async Task<IActionResult> Signup([FromBody] SignupModel model)
+        {
+            IActionResult response = Unauthorized();
+
+            var success = await _accessRepo.Signup(model);
+
+            if (success)
+            {
+                response = Ok("Signup successful");
+            }
+            else
+            {
+                response = BadRequest("Signup failed. Please check your input.");
+            }
+
+            return response;
+
+        }
     }
 }

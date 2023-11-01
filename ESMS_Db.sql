@@ -222,9 +222,9 @@ VALUES
 
 
 
-
+	DELETE FROM Students;
     -- Sample data for Students
-insert into Students (StudentID, Username, PasswordHash, Email, FullName, PhoneNumber, HomeAddress, DateOfBirth, Gender, ProfilePicture, MajorID) values (NEWID(), 'eashborne0', '$2a$04$3QvAezgiW6E9m6nbuhQybOe8U13KJfzxzAixyizBPQ2pnEMILQNMu', 'eashborne0@behance.net', 'Elinore Ashborne', '896-471-8182', '97058 Grim Road', '2000-05-04', 'Female', 'http://dummyimage.com/320x320.png/ff4444/ffffff', (SELECT MajorID FROM Majors WHERE MajorName = 'Digital Marketing'));
+insert into Students (StudentID, Username, PasswordHash, Email, FullName, PhoneNumber, HomeAddress, DateOfBirth, Gender, ProfilePicture, MajorID) values (NEWID(), 'eashborne0', '$2a$04$3QvAezgiW6E9m6nbuhQybOe8U13KJfzxzAixyizBPQ2pnEMILQNMu', 'eashborne0@behance.net', 'Elinore Ashborne', '896-471-8182', '97058 Grim Road', '2000-05-04', 'Female', null, (SELECT MajorID FROM Majors WHERE MajorName = 'Digital Marketing'));
 insert into Students (StudentID, Username, PasswordHash, Email, FullName, PhoneNumber, HomeAddress, DateOfBirth, Gender, ProfilePicture, MajorID) values (NEWID(), 'kardron1', '$2a$04$igvMU8RrgI5LVpx8YCExb.vmi0WleA.Y8V39W5dhShTOTUy9XEN5y', 'kardron1@edublogs.org', 'Kiel Ardron', '426-996-5683', '851 Rigney Point', '2002-11-21', 'Male', 'http://dummyimage.com/320x320.png/dddddd/000000', (SELECT MajorID FROM Majors WHERE MajorName = 'Digital Marketing'));
 insert into Students (StudentID, Username, PasswordHash, Email, FullName, PhoneNumber, HomeAddress, DateOfBirth, Gender, ProfilePicture, MajorID) values (NEWID(), 'icullen2', '$2a$04$1YnxmRJGzKMzVpJuKsxaMe8FuIHI0TN3IFfxYqYPF2DdVZQndnkIq', 'icullen2@edublogs.org', 'Inge Cullen', '661-988-8439', '3866 Sachtjen Center', '2003-02-11', 'Female', 'http://dummyimage.com/320x320.png/cc0000/ffffff', (SELECT MajorID FROM Majors WHERE MajorName = 'Digital Marketing'));
 insert into Students (StudentID, Username, PasswordHash, Email, FullName, PhoneNumber, HomeAddress, DateOfBirth, Gender, ProfilePicture, MajorID) values (NEWID(), 'mstigers3', '$2a$04$lbL6xUrOmi91Nrl67AFmnuYb30d3JcyTeaSDmJvZzK0GPK96fIruG', 'mstigers3@paypal.com', 'Morris Stigers', '462-921-0461', '15 Thierer Way', '2003-12-30', 'Male', 'http://dummyimage.com/320x320.png/ff4444/ffffff', (SELECT MajorID FROM Majors WHERE MajorName = 'Digital Marketing'));

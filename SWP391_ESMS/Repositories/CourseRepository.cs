@@ -26,7 +26,7 @@ namespace SWP391_ESMS.Repositories
                 await _dbContext.SaveChangesAsync();
 
                 return true;
-            }catch (Exception ex) 
+            }catch (Exception)
             {
                 return false;
             }

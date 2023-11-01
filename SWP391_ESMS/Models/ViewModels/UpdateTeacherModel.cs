@@ -1,9 +1,7 @@
 ﻿namespace SWP391_ESMS.Models.ViewModels
 {
-    public class TeacherModel
+    public class UpdateTeacherModel
     {
-        public Guid TeacherId { get; set; }
-
         public string? Username { get; set; }
 
         public string? Email { get; set; }
@@ -21,8 +19,6 @@
         public string? ProfilePicture { get; set; }
 
         public Guid? MajorId { get; set; }
-
-        public string? MajorName { get; set; }
 
     }
 }
