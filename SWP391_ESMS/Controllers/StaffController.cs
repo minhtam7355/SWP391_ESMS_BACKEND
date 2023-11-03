@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
@@ -7,6 +8,7 @@ namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin, Testing Admin")]
     public class StaffController : ControllerBase
     {
         private readonly IStaffRepository _staffRepo;
@@ -43,10 +45,11 @@ namespace SWP391_ESMS.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> AddStaff([FromBody] AddStaffModel model)
+        public async Task<IActionResult> AddStaff([FromBody] StaffModel model)
         {
             try
             {
+                if (model.Password != model.ConfirmPassword) return BadRequest("Password and confirm password must be the same");
                 bool result = await _staffRepo.AddStaffAsync(model);
 
                 if (result)
@@ -64,12 +67,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateStaff([FromRoute] Guid id, [FromBody] UpdateStaffModel model)
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateStaff([FromBody] StaffModel model)
         {
             try
             {
-                bool result = await _staffRepo.UpdateStaffAsync(id, model);
+                bool result = await _staffRepo.UpdateStaffAsync(model);
 
                 if (result)
                 {
@@ -88,12 +91,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteStaff([FromRoute] Guid id)
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteStaff([FromBody] StaffModel model)
         {
             try
             {
-                bool result = await _staffRepo.DeleteStaffAsync(id);
+                bool result = await _staffRepo.DeleteStaffAsync(model);
 
                 if (result)
                 {

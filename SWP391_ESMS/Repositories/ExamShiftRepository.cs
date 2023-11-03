@@ -17,11 +17,12 @@ namespace SWP391_ESMS.Repositories
             _mapper = mapper;
         }
 
-        public async Task<Boolean> AddExamShiftAsync(AddExamShiftModel model)
+        public async Task<Boolean> AddExamShiftAsync(ExamShiftModel model)
         {
             try
             {
                 var newExamShift = _mapper.Map<ExamShift>(model);
+                newExamShift.ShiftId = Guid.NewGuid();
                 await _dbContext.ExamShifts.AddAsync(newExamShift);
                 await _dbContext.SaveChangesAsync();
 
@@ -33,9 +34,9 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
-        public async Task<Boolean> DeleteExamShiftAsync(Guid id)
+        public async Task<Boolean> DeleteExamShiftAsync(ExamShiftModel model)
         {
-            var deleteExamShift = await _dbContext.ExamShifts.FindAsync(id);
+            var deleteExamShift = await _dbContext.ExamShifts.FindAsync(model.ShiftId);
             if (deleteExamShift != null)
             {
                 _dbContext.ExamShifts.Remove(deleteExamShift);
@@ -63,9 +64,9 @@ namespace SWP391_ESMS.Repositories
             return examShift!.ShiftId;
         }
 
-        public async Task<Boolean> UpdateExamShiftAsync(Guid id, UpdateExamShiftModel model)
+        public async Task<Boolean> UpdateExamShiftAsync(ExamShiftModel model)
         {
-            var existingExamShift = await _dbContext.ExamShifts.FindAsync(id);
+            var existingExamShift = await _dbContext.ExamShifts.FindAsync(model.ShiftId);
 
             if (existingExamShift != null)
             {

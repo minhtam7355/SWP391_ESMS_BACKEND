@@ -18,19 +18,11 @@
 
         public string? TeacherName { get; set; }
 
-        public string? TeacherEmail { get; set; }
-
-        public string? TeacherPhoneNumber { get; set; }
-
         public int? StudentsEnrolled { get; set; }
 
         public Guid? StaffId { get; set; }
 
         public string? StaffName { get; set; }
-
-        public string? StaffEmail { get; set; }
-
-        public string? StaffPhoneNumber { get; set; }
 
         public Guid? ShiftId { get; set; }
 

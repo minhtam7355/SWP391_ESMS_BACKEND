@@ -8,11 +8,11 @@ namespace SWP391_ESMS.Repositories
 
         public Task<CourseModel> GetCourseByIdAsync(Guid id);
 
-        public Task<Boolean> AddCourseAsync(AddCourseModel model);
+        public Task<Boolean> AddCourseAsync(CourseModel model);
 
-        public Task<Boolean> UpdateCourseAsync(Guid id, UpdateCourseModel model);
+        public Task<Boolean> UpdateCourseAsync(CourseModel model);
 
-        public Task<Boolean> DeleteCourseAsync(Guid id);
+        public Task<Boolean> DeleteCourseAsync(CourseModel model);
 
         public Task<Guid> GetCourseIdByName(string courseName);
     }

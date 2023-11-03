@@ -40,7 +40,7 @@ public partial class ESMSDbContext : DbContext
     {
         modelBuilder.Entity<ConfigurationSetting>(entity =>
         {
-            entity.HasKey(e => e.SettingId).HasName("PK__Configur__54372AFDB8267C36");
+            entity.HasKey(e => e.SettingId).HasName("PK__Configur__54372AFD5287A08C");
 
             entity.Property(e => e.SettingId)
                 .ValueGeneratedNever()
@@ -56,7 +56,7 @@ public partial class ESMSDbContext : DbContext
 
         modelBuilder.Entity<Course>(entity =>
         {
-            entity.HasKey(e => e.CourseId).HasName("PK__Courses__C92D7187FE47DA8E");
+            entity.HasKey(e => e.CourseId).HasName("PK__Courses__C92D71879A8651A1");
 
             entity.Property(e => e.CourseId)
                 .ValueGeneratedNever()
@@ -73,7 +73,7 @@ public partial class ESMSDbContext : DbContext
 
         modelBuilder.Entity<ExamRoom>(entity =>
         {
-            entity.HasKey(e => e.RoomId).HasName("PK__ExamRoom__3286391993DDE3C0");
+            entity.HasKey(e => e.RoomId).HasName("PK__ExamRoom__328639199A120855");
 
             entity.Property(e => e.RoomId)
                 .ValueGeneratedNever()
@@ -85,7 +85,7 @@ public partial class ESMSDbContext : DbContext
 
         modelBuilder.Entity<ExamSession>(entity =>
         {
-            entity.HasKey(e => e.ExamSessionId).HasName("PK__ExamSess__85F7FBB0A95AE512");
+            entity.HasKey(e => e.ExamSessionId).HasName("PK__ExamSess__85F7FBB021CAA782");
 
             entity.Property(e => e.ExamSessionId)
                 .ValueGeneratedNever()
@@ -122,16 +122,18 @@ public partial class ESMSDbContext : DbContext
                     "ExamEnrollment",
                     r => r.HasOne<Student>().WithMany()
                         .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
                         .HasConstraintName("FK__ExamEnrol__Stude__656C112C"),
                     l => l.HasOne<ExamSession>().WithMany()
                         .HasForeignKey("ExamSessionId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
                         .HasConstraintName("FK__ExamEnrol__ExamS__6477ECF3"),
                     j =>
                     {
-                        j.HasKey("ExamSessionId", "StudentId").HasName("PK__ExamEnro__06DBA917A0E204D4");
-                        j.ToTable("ExamEnrollments");
+                        j.HasKey("ExamSessionId", "StudentId").HasName("PK__ExamEnro__06DBA9178D333A96");
+                        j.ToTable("ExamEnrollments", tb =>
+                        {
+                            tb.HasTrigger("trg_StudentEnrollmentAfterDelete");
+                            tb.HasTrigger("trg_StudentEnrollmentAfterInsert");
+                        });
                         j.IndexerProperty<Guid>("ExamSessionId").HasColumnName("ExamSessionID");
                         j.IndexerProperty<Guid>("StudentId").HasColumnName("StudentID");
                     });
@@ -139,7 +141,7 @@ public partial class ESMSDbContext : DbContext
 
         modelBuilder.Entity<ExamShift>(entity =>
         {
-            entity.HasKey(e => e.ShiftId).HasName("PK__ExamShif__C0A838E12CA7FD5D");
+            entity.HasKey(e => e.ShiftId).HasName("PK__ExamShif__C0A838E1776F4A23");
 
             entity.Property(e => e.ShiftId)
                 .ValueGeneratedNever()
@@ -151,7 +153,7 @@ public partial class ESMSDbContext : DbContext
 
         modelBuilder.Entity<Major>(entity =>
         {
-            entity.HasKey(e => e.MajorId).HasName("PK__Majors__D5B8BFB1261CF639");
+            entity.HasKey(e => e.MajorId).HasName("PK__Majors__D5B8BFB1A858E71C");
 
             entity.Property(e => e.MajorId)
                 .ValueGeneratedNever()
@@ -163,7 +165,7 @@ public partial class ESMSDbContext : DbContext
 
         modelBuilder.Entity<Staff>(entity =>
         {
-            entity.HasKey(e => e.StaffId).HasName("PK__Staff__96D4AAF743EFCD1A");
+            entity.HasKey(e => e.StaffId).HasName("PK__Staff__96D4AAF76D1010EE");
 
             entity.Property(e => e.StaffId)
                 .ValueGeneratedNever()
@@ -196,7 +198,7 @@ public partial class ESMSDbContext : DbContext
 
         modelBuilder.Entity<Student>(entity =>
         {
-            entity.HasKey(e => e.StudentId).HasName("PK__Students__32C52A79AAB225DA");
+            entity.HasKey(e => e.StudentId).HasName("PK__Students__32C52A79993D7C1A");
 
             entity.Property(e => e.StudentId)
                 .ValueGeneratedNever()
@@ -233,15 +235,13 @@ public partial class ESMSDbContext : DbContext
                     "CourseEnrollment",
                     r => r.HasOne<Course>().WithMany()
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
                         .HasConstraintName("FK__CourseEnr__Cours__52593CB8"),
                     l => l.HasOne<Student>().WithMany()
                         .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
                         .HasConstraintName("FK__CourseEnr__Stude__5165187F"),
                     j =>
                     {
-                        j.HasKey("StudentId", "CourseId").HasName("PK__CourseEn__5E57FD61DC0F28A2");
+                        j.HasKey("StudentId", "CourseId").HasName("PK__CourseEn__5E57FD6125F6B72E");
                         j.ToTable("CourseEnrollments");
                         j.IndexerProperty<Guid>("StudentId").HasColumnName("StudentID");
                         j.IndexerProperty<Guid>("CourseId").HasColumnName("CourseID");
@@ -250,7 +250,7 @@ public partial class ESMSDbContext : DbContext
 
         modelBuilder.Entity<Teacher>(entity =>
         {
-            entity.HasKey(e => e.TeacherId).HasName("PK__Teachers__EDF25944066FA3E2");
+            entity.HasKey(e => e.TeacherId).HasName("PK__Teachers__EDF25944C8173D9D");
 
             entity.Property(e => e.TeacherId)
                 .ValueGeneratedNever()

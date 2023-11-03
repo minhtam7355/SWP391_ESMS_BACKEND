@@ -17,24 +17,26 @@ namespace SWP391_ESMS.Repositories
             _mapper = mapper;
         }
 
-        public async Task<Boolean> AddCourseAsync(AddCourseModel model)
+        public async Task<Boolean> AddCourseAsync(CourseModel model)
         {
             try
             {
                 var newCourse = _mapper.Map<Course>(model);
+                newCourse.CourseId = Guid.NewGuid();
                 await _dbContext.Courses.AddAsync(newCourse);
                 await _dbContext.SaveChangesAsync();
 
                 return true;
-            }catch (Exception)
+            }
+            catch (Exception)
             {
                 return false;
             }
         }
 
-        public async Task<Boolean> DeleteCourseAsync(Guid id)
+        public async Task<Boolean> DeleteCourseAsync(CourseModel model)
         {
-            var deleteCourse = await _dbContext.Courses.FindAsync(id);
+            var deleteCourse = await _dbContext.Courses.FindAsync(model.CourseId);
             if (deleteCourse != null)
             {
                 _dbContext.Courses.Remove(deleteCourse);
@@ -62,9 +64,9 @@ namespace SWP391_ESMS.Repositories
             return course!.CourseId;
         }
 
-        public async Task<Boolean> UpdateCourseAsync(Guid id, UpdateCourseModel model)
+        public async Task<Boolean> UpdateCourseAsync(CourseModel model)
         {
-            var existingCourse = await _dbContext.Courses.FindAsync(id);
+            var existingCourse = await _dbContext.Courses.FindAsync(model.CourseId);
 
             if (existingCourse != null)
             {

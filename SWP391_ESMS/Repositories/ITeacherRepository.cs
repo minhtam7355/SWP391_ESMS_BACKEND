@@ -8,10 +8,10 @@ namespace SWP391_ESMS.Repositories
 
         public Task<TeacherModel> GetTeacherByIdAsync(Guid id);
 
-        public Task<Boolean> AddTeacherAsync(AddTeacherModel model);
+        public Task<Boolean> AddTeacherAsync(TeacherModel model);
 
-        public Task<Boolean> UpdateTeacherAsync(Guid id, UpdateTeacherModel model);
+        public Task<Boolean> UpdateTeacherAsync(TeacherModel model);
 
-        public Task<Boolean> DeleteTeacherAsync(Guid id);
+        public Task<Boolean> DeleteTeacherAsync(TeacherModel model);
     }
 }

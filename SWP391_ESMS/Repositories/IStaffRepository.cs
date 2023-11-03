@@ -8,10 +8,10 @@ namespace SWP391_ESMS.Repositories
 
         public Task<StaffModel> GetStaffByIdAsync(Guid id);
 
-        public Task<Boolean> AddStaffAsync(AddStaffModel model);
+        public Task<Boolean> AddStaffAsync(StaffModel model);
 
-        public Task<Boolean> UpdateStaffAsync(Guid id, UpdateStaffModel model);
+        public Task<Boolean> UpdateStaffAsync(StaffModel model);
 
-        public Task<Boolean> DeleteStaffAsync(Guid id);
+        public Task<Boolean> DeleteStaffAsync(StaffModel model);
     }
 }

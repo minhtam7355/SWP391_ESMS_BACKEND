@@ -8,11 +8,11 @@ namespace SWP391_ESMS.Repositories
 
         public Task<ExamRoomModel> GetExamRoomByIdAsync(Guid id);
 
-        public Task<Boolean> AddExamRoomAsync(AddExamRoomModel model);
+        public Task<Boolean> AddExamRoomAsync(ExamRoomModel model);
 
-        public Task<Boolean> UpdateExamRoomAsync(Guid id, UpdateExamRoomModel model);
+        public Task<Boolean> UpdateExamRoomAsync(ExamRoomModel model);
 
-        public Task<Boolean> DeleteExamRoomAsync(Guid id);
+        public Task<Boolean> DeleteExamRoomAsync(ExamRoomModel model);
 
         public Task<Guid> GetExamRoomIdByName(string roomName);
     }

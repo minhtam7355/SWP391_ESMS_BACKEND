@@ -17,11 +17,12 @@ namespace SWP391_ESMS.Repositories
             _mapper = mapper;
         }
 
-        public async Task<Boolean> AddExamRoomAsync(AddExamRoomModel model)
+        public async Task<Boolean> AddExamRoomAsync(ExamRoomModel model)
         {
             try
             {
                 var newRoom = _mapper.Map<ExamRoom>(model);
+                newRoom.RoomId = Guid.NewGuid();
                 await _dbContext.ExamRooms.AddAsync(newRoom);
                 await _dbContext.SaveChangesAsync();
 
@@ -33,9 +34,9 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
-        public async Task<Boolean> DeleteExamRoomAsync(Guid id)
+        public async Task<Boolean> DeleteExamRoomAsync(ExamRoomModel model)
         {
-            var deleteRoom = await _dbContext.ExamRooms.FindAsync(id);
+            var deleteRoom = await _dbContext.ExamRooms.FindAsync(model.RoomId);
             if (deleteRoom != null)
             {
                 _dbContext.ExamRooms.Remove(deleteRoom);
@@ -63,9 +64,9 @@ namespace SWP391_ESMS.Repositories
             return room!.RoomId;
         }
 
-        public async Task<Boolean> UpdateExamRoomAsync(Guid id, UpdateExamRoomModel model)
+        public async Task<Boolean> UpdateExamRoomAsync(ExamRoomModel model)
         {
-            var existingRoom = await _dbContext.ExamRooms.FindAsync(id);
+            var existingRoom = await _dbContext.ExamRooms.FindAsync(model.RoomId);
 
             if (existingRoom != null)
             {

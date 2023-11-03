@@ -17,25 +17,27 @@ namespace SWP391_ESMS.Repositories
             _mapper = mapper;
         }
 
-        public async Task<Boolean> AddMajorAsync(AddMajorModel model)
+        public async Task<Boolean> AddMajorAsync(MajorModel model)
         {
             try
             {
                 var newMajor = _mapper.Map<Major>(model);
+                newMajor.MajorId = Guid.NewGuid();
                 await _dbContext.Majors.AddAsync(newMajor);
                 await _dbContext.SaveChangesAsync();
 
                 return true;
-            }catch (Exception) 
+            }
+            catch (Exception)
             {
                 return false;
             }
-            
+
         }
 
-        public async Task<Boolean> DeleteMajorAsync(Guid id)
+        public async Task<Boolean> DeleteMajorAsync(MajorModel model)
         {
-            var deleteMajor = await _dbContext.Majors.FindAsync(id);
+            var deleteMajor = await _dbContext.Majors.FindAsync(model.MajorId);
             if (deleteMajor != null)
             {
                 _dbContext.Majors.Remove(deleteMajor);
@@ -63,9 +65,9 @@ namespace SWP391_ESMS.Repositories
             return major!.MajorId;
         }
 
-        public async Task<Boolean> UpdateMajorAsync(Guid id, UpdateMajorModel model)
+        public async Task<Boolean> UpdateMajorAsync(MajorModel model)
         {
-            var existingMajor = await _dbContext.Majors.FindAsync(id);
+            var existingMajor = await _dbContext.Majors.FindAsync(model.MajorId);
 
             if (existingMajor != null)
             {

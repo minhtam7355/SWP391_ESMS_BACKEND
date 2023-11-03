@@ -8,6 +8,7 @@ namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
     public class CoursesController : ControllerBase
     {
         private readonly ICourseRepository _courseRepo;
@@ -44,17 +45,17 @@ namespace SWP391_ESMS.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> AddCourse([FromBody] AddCourseModel model)
+        public async Task<IActionResult> AddCourse([FromBody] CourseModel model)
         {
             try
             {
                 bool result = await _courseRepo.AddCourseAsync(model);
 
-                if (result) 
+                if (result)
                 {
                     return Ok("Added Successfully");
                 }
-                else 
+                else
                 {
                     return BadRequest("Failed to add the course");
                 }
@@ -65,12 +66,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateCourse([FromRoute] Guid id, [FromBody] UpdateCourseModel model)
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateCourse([FromBody] CourseModel model)
         {
             try
             {
-                bool result = await _courseRepo.UpdateCourseAsync(id, model);
+                bool result = await _courseRepo.UpdateCourseAsync(model);
 
                 if (result)
                 {
@@ -81,7 +82,7 @@ namespace SWP391_ESMS.Controllers
                     return BadRequest("Failed to update the course");
                 }
 
-                
+
             }
             catch (Exception ex)
             {
@@ -89,12 +90,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteCourse([FromRoute] Guid id)
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteCourse([FromBody] CourseModel model)
         {
             try
             {
-                bool result = await _courseRepo.DeleteCourseAsync(id);
+                bool result = await _courseRepo.DeleteCourseAsync(model);
 
                 if (result)
                 {
@@ -104,7 +105,7 @@ namespace SWP391_ESMS.Controllers
                 {
                     return BadRequest("Failed to delete the course");
                 }
-                
+
             }
             catch (Exception ex)
             {

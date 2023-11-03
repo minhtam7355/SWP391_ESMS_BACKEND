@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
@@ -7,6 +8,7 @@ namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin, Testing Admin")]
     public class TeachersController : ControllerBase
     {
         private readonly ITeacherRepository _teacherRepo;
@@ -43,10 +45,11 @@ namespace SWP391_ESMS.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> AddTeacher([FromBody] AddTeacherModel model)
+        public async Task<IActionResult> AddTeacher([FromBody] TeacherModel model)
         {
             try
             {
+                if (model.Password != model.ConfirmPassword) return BadRequest("Password and confirm password must be the same");
                 bool result = await _teacherRepo.AddTeacherAsync(model);
 
                 if (result)
@@ -64,12 +67,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateTeacher([FromRoute] Guid id, [FromBody] UpdateTeacherModel model)
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateTeacher([FromBody] TeacherModel model)
         {
             try
             {
-                bool result = await _teacherRepo.UpdateTeacherAsync(id, model);
+                bool result = await _teacherRepo.UpdateTeacherAsync(model);
 
                 if (result)
                 {
@@ -88,12 +91,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteTeacher([FromRoute] Guid id)
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteTeacher([FromBody] TeacherModel model)
         {
             try
             {
-                bool result = await _teacherRepo.DeleteTeacherAsync(id);
+                bool result = await _teacherRepo.DeleteTeacherAsync(model);
 
                 if (result)
                 {

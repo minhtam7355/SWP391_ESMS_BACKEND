@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
@@ -7,6 +8,7 @@ namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
     public class ExamShiftsController : ControllerBase
     {
         private readonly IExamShiftRepository _shiftRepo;
@@ -43,7 +45,7 @@ namespace SWP391_ESMS.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> AddExamShift([FromBody] AddExamShiftModel model)
+        public async Task<IActionResult> AddExamShift([FromBody] ExamShiftModel model)
         {
             try
             {
@@ -64,12 +66,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateExamShift([FromRoute] Guid id, [FromBody] UpdateExamShiftModel model)
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateExamShift([FromBody] ExamShiftModel model)
         {
             try
             {
-                bool result = await _shiftRepo.UpdateExamShiftAsync(id, model);
+                bool result = await _shiftRepo.UpdateExamShiftAsync(model);
 
                 if (result)
                 {
@@ -88,12 +90,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteExamShift([FromRoute] Guid id)
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteExamShift([FromBody] ExamShiftModel model)
         {
             try
             {
-                bool result = await _shiftRepo.DeleteExamShiftAsync(id);
+                bool result = await _shiftRepo.DeleteExamShiftAsync(model);
 
                 if (result)
                 {

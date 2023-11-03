@@ -17,11 +17,13 @@ namespace SWP391_ESMS.Repositories
             _mapper = mapper;
         }
 
-        public async Task<Boolean> AddStudentAsync(AddStudentModel model)
+        public async Task<Boolean> AddStudentAsync(StudentModel model)
         {
             try
             {
                 var newStudent = _mapper.Map<Student>(model);
+                newStudent.StudentId = Guid.NewGuid();
+                newStudent.PasswordHash = BC.EnhancedHashPassword(model.Password, 13);
                 await _dbContext.Students.AddAsync(newStudent);
                 await _dbContext.SaveChangesAsync();
 
@@ -33,9 +35,9 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
-        public async Task<Boolean> DeleteStudentAsync(Guid id)
+        public async Task<Boolean> DeleteStudentAsync(StudentModel model)
         {
-            var deleteStudent = await _dbContext.Students.FindAsync(id);
+            var deleteStudent = await _dbContext.Students.FindAsync(model.StudentId);
             if (deleteStudent != null)
             {
                 _dbContext.Students.Remove(deleteStudent);
@@ -57,9 +59,9 @@ namespace SWP391_ESMS.Repositories
             return _mapper.Map<StudentModel>(student);
         }
 
-        public async Task<Boolean> UpdateStudentAsync(Guid id, UpdateStudentModel model)
+        public async Task<Boolean> UpdateStudentAsync(StudentModel model)
         {
-            var existingStudent = await _dbContext.Students.FindAsync(id);
+            var existingStudent = await _dbContext.Students.FindAsync(model.StudentId);
 
             if (existingStudent != null)
             {

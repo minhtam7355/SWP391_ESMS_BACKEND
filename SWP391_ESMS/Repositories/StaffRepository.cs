@@ -17,11 +17,13 @@ namespace SWP391_ESMS.Repositories
             _mapper = mapper;
         }
 
-        public async Task<Boolean> AddStaffAsync(AddStaffModel model)
+        public async Task<Boolean> AddStaffAsync(StaffModel model)
         {
             try
             {
                 var newStaff = _mapper.Map<Staff>(model);
+                newStaff.StaffId = Guid.NewGuid();
+                newStaff.PasswordHash = BC.EnhancedHashPassword(model.Password, 13);
                 await _dbContext.Staff.AddAsync(newStaff);
                 await _dbContext.SaveChangesAsync();
 
@@ -33,9 +35,9 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
-        public async Task<Boolean> DeleteStaffAsync(Guid id)
+        public async Task<Boolean> DeleteStaffAsync(StaffModel model)
         {
-            var deleteStaff = await _dbContext.Staff.FindAsync(id);
+            var deleteStaff = await _dbContext.Staff.FindAsync(model.StaffId);
             if (deleteStaff != null)
             {
                 _dbContext.Staff.Remove(deleteStaff);
@@ -57,9 +59,9 @@ namespace SWP391_ESMS.Repositories
             return _mapper.Map<StaffModel>(staff);
         }
 
-        public async Task<Boolean> UpdateStaffAsync(Guid id, UpdateStaffModel model)
+        public async Task<Boolean> UpdateStaffAsync(StaffModel model)
         {
-            var existingStaff = await _dbContext.Staff.FindAsync(id);
+            var existingStaff = await _dbContext.Staff.FindAsync(model.StaffId);
 
             if (existingStaff != null)
             {

@@ -1,12 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
+using System.Security.Claims;
 
 namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin, Testing Admin")]
     public class ExamSessionsController : ControllerBase
     {
         private readonly IExamSessionRepository _examRepo;
@@ -48,6 +51,11 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
+                var sidClaim = User.FindFirst(ClaimTypes.Sid);
+
+                if (sidClaim != null && Guid.TryParse(sidClaim.Value, out Guid userId)) model.StaffId = userId;
+                else return BadRequest("Failed to establish a link with the Staff ID");
+
                 bool result = await _examRepo.AddExamSessionAsync(model);
 
                 if (result)
@@ -65,12 +73,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateExamSession([FromRoute] Guid id, [FromBody] ExamSessionModel model)
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateExamSession([FromBody] ExamSessionModel model)
         {
             try
             {
-                bool result = await _examRepo.UpdateExamSessionAsync(id, model);
+                bool result = await _examRepo.UpdateExamSessionAsync(model);
 
                 if (result)
                 {
@@ -87,12 +95,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteExamSession([FromRoute] Guid id)
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteExamSession([FromBody] ExamSessionModel model)
         {
             try
             {
-                bool result = await _examRepo.DeleteExamSessionAsync(id);
+                bool result = await _examRepo.DeleteExamSessionAsync(model);
 
                 if (result)
                 {

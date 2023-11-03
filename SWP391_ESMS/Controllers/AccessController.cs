@@ -12,6 +12,7 @@ namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class AccessController : ControllerBase
     {
         private IConfiguration _config;
@@ -47,17 +48,17 @@ namespace SWP391_ESMS.Controllers
                         new Claim(JwtRegisteredClaimNames.Sub, _config["Jwt:Subject"]!),
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                         new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
-                        new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                        new Claim(ClaimTypes.Sid, user.UserId.ToString()),
                         new Claim(ClaimTypes.Role, user.Role!)
                     };
 
                 var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
                 var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-                
+
                 // Define different expiration times based on the 'rememberMe' parameter.
                 DateTime? expirationTime = rememberMe
-                    ? DateTime.UtcNow.AddHours(Convert.ToDouble(_config["Jwt:ExpiryInHoursRememberMe"]!))  // Longer expiration for "remember me" (e.g., 300 hours)
-                    : DateTime.UtcNow.AddHours(Convert.ToDouble(_config["Jwt:ExpiryInHours"]!));   // Shorter expiration for regular sessions (e.g., 3 hours)
+                    ? DateTime.UtcNow.AddDays(Convert.ToDouble(_config["Jwt:ExpiresInRememberMe"]!))  // Longer expiration for "remember me"
+                    : DateTime.UtcNow.AddHours(Convert.ToDouble(_config["Jwt:ExpiresIn"]!));   // Shorter expiration for regular sessions
 
                 var token = new JwtSecurityToken(
                     _config["Jwt:Issuer"],

@@ -22,9 +22,9 @@ namespace SWP391_ESMS.Repositories
             var student = await _dbContext.Students.FirstOrDefaultAsync(student =>
                 (student.Username == model.UsernameOrEmail || student.Email == model.UsernameOrEmail));
 
-            if (student != null) 
+            if (student != null)
             {
-                if(!BC.EnhancedVerify(model.Password, student.PasswordHash)) { return null; }
+                if (!BC.EnhancedVerify(model.Password, student.PasswordHash)) { return null; }
                 return _mapper.Map<UserInfo>(student);
             }
 
@@ -60,7 +60,8 @@ namespace SWP391_ESMS.Repositories
 
                 return true;
 
-            }catch (Exception)
+            }
+            catch (Exception)
             {
                 return false;
             }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
@@ -7,6 +8,7 @@ namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
     public class MajorsController : ControllerBase
     {
         private readonly IMajorRepository _majorRepo;
@@ -44,7 +46,7 @@ namespace SWP391_ESMS.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> AddMajor([FromBody] AddMajorModel model)
+        public async Task<IActionResult> AddMajor([FromBody] MajorModel model)
         {
             try
             {
@@ -65,12 +67,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateMajor([FromRoute] Guid id, [FromBody] UpdateMajorModel model)
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateMajor([FromBody] MajorModel model)
         {
             try
             {
-                bool result = await _majorRepo.UpdateMajorAsync(id, model);
+                bool result = await _majorRepo.UpdateMajorAsync(model);
 
                 if (result)
                 {
@@ -87,12 +89,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteMajor([FromRoute] Guid id)
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteMajor([FromBody] MajorModel model)
         {
             try
             {
-                bool result = await _majorRepo.DeleteMajorAsync(id);
+                bool result = await _majorRepo.DeleteMajorAsync(model);
 
                 if (result)
                 {

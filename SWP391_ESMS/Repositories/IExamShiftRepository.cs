@@ -8,11 +8,11 @@ namespace SWP391_ESMS.Repositories
 
         public Task<ExamShiftModel> GetExamShiftByIdAsync(Guid id);
 
-        public Task<Boolean> AddExamShiftAsync(AddExamShiftModel model);
+        public Task<Boolean> AddExamShiftAsync(ExamShiftModel model);
 
-        public Task<Boolean> UpdateExamShiftAsync(Guid id, UpdateExamShiftModel model);
+        public Task<Boolean> UpdateExamShiftAsync(ExamShiftModel model);
 
-        public Task<Boolean> DeleteExamShiftAsync(Guid id);
+        public Task<Boolean> DeleteExamShiftAsync(ExamShiftModel model);
 
         public Task<Guid> GetExamShiftIdByName(string examShiftName);
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
@@ -7,6 +8,7 @@ namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
     public class ExamRoomsController : ControllerBase
     {
         private readonly IExamRoomRepository _roomRepo;
@@ -43,7 +45,7 @@ namespace SWP391_ESMS.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> AddExamRoom([FromBody] AddExamRoomModel model)
+        public async Task<IActionResult> AddExamRoom([FromBody] ExamRoomModel model)
         {
             try
             {
@@ -64,12 +66,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateExamRoom([FromRoute] Guid id, [FromBody] UpdateExamRoomModel model)
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateExamRoom([FromBody] ExamRoomModel model)
         {
             try
             {
-                bool result = await _roomRepo.UpdateExamRoomAsync(id, model);
+                bool result = await _roomRepo.UpdateExamRoomAsync(model);
 
                 if (result)
                 {
@@ -88,12 +90,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteExamRoom([FromRoute] Guid id)
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteExamRoom([FromBody] ExamRoomModel model)
         {
             try
             {
-                bool result = await _roomRepo.DeleteExamRoomAsync(id);
+                bool result = await _roomRepo.DeleteExamRoomAsync(model);
 
                 if (result)
                 {

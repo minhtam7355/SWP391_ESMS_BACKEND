@@ -17,11 +17,13 @@ namespace SWP391_ESMS.Repositories
             _mapper = mapper;
         }
 
-        public async Task<Boolean> AddTeacherAsync(AddTeacherModel model)
+        public async Task<Boolean> AddTeacherAsync(TeacherModel model)
         {
             try
             {
                 var newTeacher = _mapper.Map<Teacher>(model);
+                newTeacher.TeacherId = Guid.NewGuid();
+                newTeacher.PasswordHash = BC.EnhancedHashPassword(model.Password, 13);
                 await _dbContext.Teachers.AddAsync(newTeacher);
                 await _dbContext.SaveChangesAsync();
 
@@ -33,9 +35,9 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
-        public async Task<Boolean> DeleteTeacherAsync(Guid id)
+        public async Task<Boolean> DeleteTeacherAsync(TeacherModel model)
         {
-            var deleteTeacher = await _dbContext.Teachers.FindAsync(id);
+            var deleteTeacher = await _dbContext.Teachers.FindAsync(model.TeacherId);
             if (deleteTeacher != null)
             {
                 _dbContext.Teachers.Remove(deleteTeacher);
@@ -57,9 +59,9 @@ namespace SWP391_ESMS.Repositories
             return _mapper.Map<TeacherModel>(teacher);
         }
 
-        public async Task<Boolean> UpdateTeacherAsync(Guid id, UpdateTeacherModel model)
+        public async Task<Boolean> UpdateTeacherAsync(TeacherModel model)
         {
-            var existingTeacher = await _dbContext.Teachers.FindAsync(id);
+            var existingTeacher = await _dbContext.Teachers.FindAsync(model.TeacherId);
 
             if (existingTeacher != null)
             {

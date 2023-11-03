@@ -10,9 +10,9 @@ namespace SWP391_ESMS.Repositories
 
         public Task<Boolean> AddExamSessionAsync(ExamSessionModel model);
 
-        public Task<Boolean> UpdateExamSessionAsync(Guid id, ExamSessionModel model);
+        public Task<Boolean> UpdateExamSessionAsync(ExamSessionModel model);
 
-        public Task<Boolean> DeleteExamSessionAsync(Guid id);
+        public Task<Boolean> DeleteExamSessionAsync(ExamSessionModel model);
 
     }
 }

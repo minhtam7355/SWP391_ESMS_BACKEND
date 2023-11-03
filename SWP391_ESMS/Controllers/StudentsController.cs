@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
@@ -7,6 +8,7 @@ namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin, Testing Admin")]
     public class StudentsController : ControllerBase
     {
         private readonly IStudentRepository _studentRepo;
@@ -43,10 +45,11 @@ namespace SWP391_ESMS.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> AddStudent([FromBody] AddStudentModel model)
+        public async Task<IActionResult> AddStudent([FromBody] StudentModel model)
         {
             try
             {
+                if (model.Password != model.ConfirmPassword) return BadRequest("Password and confirm password must be the same");
                 bool result = await _studentRepo.AddStudentAsync(model);
 
                 if (result)
@@ -64,12 +67,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateStudent([FromRoute] Guid id, [FromBody] UpdateStudentModel model)
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateStudent([FromBody] StudentModel model)
         {
             try
             {
-                bool result = await _studentRepo.UpdateStudentAsync(id, model);
+                bool result = await _studentRepo.UpdateStudentAsync(model);
 
                 if (result)
                 {
@@ -88,12 +91,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteStudent([FromRoute] Guid id)
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteStudent([FromBody] StudentModel model)
         {
             try
             {
-                bool result = await _studentRepo.DeleteStudentAsync(id);
+                bool result = await _studentRepo.DeleteStudentAsync(model);
 
                 if (result)
                 {
