@@ -61,15 +61,18 @@ namespace SWP391_ESMS.Helpers
             // ACCESS MAPPING
             CreateMap<Student, UserInfo>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.StudentId))
-                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => "Student"));
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => "Student"))
+                .ReverseMap();
 
             CreateMap<Teacher, UserInfo>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.TeacherId))
-                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => "Teacher"));
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => "Teacher"))
+                .ReverseMap();
 
             CreateMap<Staff, UserInfo>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.StaffId))
-                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.StaffRole));
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.StaffRole))
+                .ReverseMap();
 
             CreateMap<SignupModel, Student>()
                 .ForMember(dest => dest.StudentId, opt => opt.MapFrom(_ => Guid.NewGuid()))
@@ -78,14 +81,6 @@ namespace SWP391_ESMS.Helpers
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName));
 
-            CreateMap<ChangePasswordModel, Student>()
-                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => BC.EnhancedHashPassword(src.NewPassword, 13)));
-
-            CreateMap<ChangePasswordModel, Teacher>()
-                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => BC.EnhancedHashPassword(src.NewPassword, 13)));
-
-            CreateMap<ChangePasswordModel, Staff>()
-                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => BC.EnhancedHashPassword(src.NewPassword, 13)));
         }
     }
 }

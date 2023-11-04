@@ -14,5 +14,6 @@ namespace SWP391_ESMS.Repositories
 
         public Task<Boolean> DeleteStudentAsync(StudentModel model);
 
+        public Task<List<StudentModel>?> GetStudentsByExamSessionAsync(ExamSessionModel model);
     }
 }

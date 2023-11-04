@@ -62,6 +62,8 @@ builder.Services.AddScoped<IExamShiftRepository, ExamShiftRepository>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
+
 
 var app = builder.Build();
 

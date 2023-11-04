@@ -113,5 +113,18 @@ namespace SWP391_ESMS.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPost("getbysession")]
+        public async Task<IActionResult> GetStudentsByExamSession(ExamSessionModel model)
+        {
+            try
+            {
+                return Ok(await _studentRepo.GetStudentsByExamSessionAsync(model));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
