@@ -129,7 +129,7 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("removestudent/{examSessionId}/{studentId}")]
+        [HttpPut("removestudent/{examSessionId}/{studentId}")]
         public async Task<IActionResult> RemoveStudentFromExamSession([FromRoute] Guid examSessionId, [FromRoute] Guid studentId)
         {
             try
@@ -151,7 +151,7 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpPost("addstudent/{examSessionId}/{studentId}")]
+        [HttpPut("addstudent/{examSessionId}/{studentId}")]
         public async Task<IActionResult> AddStudentToExamSession([FromRoute] Guid examSessionId, [FromRoute] Guid studentId)
         {
             try
@@ -173,7 +173,7 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpPost("addteacher/{examSessionId}/{teacherId}")]
+        [HttpPut("addteacher/{examSessionId}/{teacherId}")]
         public async Task<IActionResult> AddTeacherToExamSession([FromRoute] Guid examSessionId, [FromRoute] Guid teacherId)
         {
             try
@@ -195,7 +195,7 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("removeteacher/{examSessionId}")]
+        [HttpPut("removeteacher/{examSessionId}")]
         public async Task<IActionResult> RemoveTeacherFromExamSession([FromRoute] Guid examSessionId)
         {
             try
