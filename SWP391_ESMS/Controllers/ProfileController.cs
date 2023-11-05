@@ -36,7 +36,7 @@ namespace SWP391_ESMS.Controllers
         }
 
         [HttpPut("userprofile")]
-        public async Task<IActionResult> UpdateUserProfile(UserInfo user)
+        public async Task<IActionResult> UpdateUserProfile([FromBody] UserInfo user)
         {
             try
             {
@@ -57,8 +57,8 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpPost("changepassword")]
-        public async Task<IActionResult> ChangePassword(ChangePasswordModel model)
+        [HttpPut("changepassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel model)
         {
             try
             {

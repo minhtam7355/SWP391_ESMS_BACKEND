@@ -136,6 +136,22 @@ namespace SWP391_ESMS.Repositories
 
         }
 
+        public async Task<List<ExamSessionModel>?> GetExamSessionsByStudentAsync(Guid studentId)
+        {
+            try
+            {
+                var examSessions = await _dbContext.ExamSessions
+                    .Where(es => es.Students.Any(s => s.StudentId == studentId))
+                    .ToListAsync();
+
+                return _mapper.Map<List<ExamSessionModel>>(examSessions);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         public async Task<Boolean> UpdateExamSessionAsync(ExamSessionModel model)
         {
             var existingExamSession = await _dbContext.ExamSessions.FindAsync(model.ExamSessionId);

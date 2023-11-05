@@ -114,12 +114,25 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpPost("getbysession")]
-        public async Task<IActionResult> GetStudentsByExamSession(ExamSessionModel model)
+        [HttpGet("getbysession/{examSessionId}")]
+        public async Task<IActionResult> GetStudentsByExamSession([FromRoute] Guid examSessionId)
         {
             try
             {
-                return Ok(await _studentRepo.GetStudentsByExamSessionAsync(model));
+                return Ok(await _studentRepo.GetStudentsByExamSessionAsync(examSessionId));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("getunassignedstudents/{courseId}")]
+        public async Task<IActionResult> GetUnassignedStudents([FromRoute] Guid courseId)
+        {
+            try
+            {
+                return Ok(await _studentRepo.GetUnassignedStudentsAsync(courseId));
             }
             catch (Exception ex)
             {

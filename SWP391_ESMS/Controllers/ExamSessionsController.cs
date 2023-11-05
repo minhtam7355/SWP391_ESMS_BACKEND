@@ -117,9 +117,18 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-
-
-
+        [HttpGet("getbystudent/{studentId}")]
+        public async Task<IActionResult> GetExamSessionsByStudent([FromRoute] Guid studentId)
+        {
+            try
+            {
+                return Ok(await _examRepo.GetExamSessionsByStudentAsync(studentId));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
     }
 }

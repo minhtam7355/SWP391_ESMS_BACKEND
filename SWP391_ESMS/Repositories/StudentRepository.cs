@@ -59,11 +59,28 @@ namespace SWP391_ESMS.Repositories
             return _mapper.Map<StudentModel>(student);
         }
 
-        public async Task<List<StudentModel>?> GetStudentsByExamSessionAsync(ExamSessionModel model)
+        public async Task<List<StudentModel>?> GetStudentsByExamSessionAsync(Guid examSessionId)
         {
-            var examSession = await _dbContext.ExamSessions.FindAsync(model.ExamSessionId);
+            var examSession = await _dbContext.ExamSessions.FindAsync(examSessionId);
             if (examSession == null) return null;
             return _mapper.Map<List<StudentModel>>(examSession.Students);
+        }
+
+        public async Task<List<StudentModel>?> GetUnassignedStudentsAsync(Guid courseId)
+        {
+            try
+            {
+                // Query to retrieve students who are enrolled in the course but not assigned to any exam session.
+                var unassignedStudents = await _dbContext.Students
+                    .Where(s => s.Courses.Any(c => c.CourseId == courseId) && !s.ExamSessions.Any(es => es.CourseId == courseId))
+                    .ToListAsync();
+
+                return _mapper.Map<List<StudentModel>>(unassignedStudents);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         public async Task<Boolean> UpdateStudentAsync(StudentModel model)
