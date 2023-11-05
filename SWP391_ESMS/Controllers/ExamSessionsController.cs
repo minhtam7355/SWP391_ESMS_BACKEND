@@ -9,7 +9,6 @@ namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin, Testing Admin")]
     public class ExamSessionsController : ControllerBase
     {
         private readonly IExamSessionRepository _examRepo;
@@ -19,6 +18,7 @@ namespace SWP391_ESMS.Controllers
             _examRepo = examRepo;
         }
 
+        [Authorize(Roles = "Admin, Testing Admin, Testing Staff, Teacher")]
         [HttpGet("getall")]
         public async Task<IActionResult> GetAllExamSessions()
         {
@@ -32,6 +32,7 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin, Testing Admin, Testing Staff, Teacher, Student")]
         [HttpGet("getbyid/{id}")]
         public async Task<IActionResult> GetExamSessionById([FromRoute] Guid id)
         {
@@ -46,6 +47,7 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
         [HttpPost("create")]
         public async Task<IActionResult> AddExamSession([FromBody] ExamSessionModel model)
         {
@@ -73,6 +75,7 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
         [HttpPut("update")]
         public async Task<IActionResult> UpdateExamSession([FromBody] ExamSessionModel model)
         {
@@ -95,6 +98,7 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
         [HttpDelete("delete")]
         public async Task<IActionResult> DeleteExamSession([FromBody] ExamSessionModel model)
         {
@@ -117,6 +121,7 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
+        [Authorize(Roles = "Student")]
         [HttpGet("getbystudent/{studentId}")]
         public async Task<IActionResult> GetExamSessionsByStudent([FromRoute] Guid studentId)
         {
@@ -130,5 +135,50 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
+        [HttpDelete("removestudent/{examSessionId}/{studentId}")]
+        public async Task<IActionResult> RemoveStudentFromExamSession([FromRoute] Guid examSessionId, [FromRoute] Guid studentId)
+        {
+            try
+            {
+                bool result = await _examRepo.RemoveStudentFromExamSessionAsync(examSessionId, studentId);
+
+                if (result)
+                {
+                    return Ok("Student removed from the exam session successfully");
+                }
+                else
+                {
+                    return BadRequest("Failed to remove the student from the exam session");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
+        [HttpPost("addstudent/{examSessionId}/{studentId}")]
+        public async Task<IActionResult> AddStudentToExamSession([FromRoute] Guid examSessionId, [FromRoute] Guid studentId)
+        {
+            try
+            {
+                bool result = await _examRepo.AddStudentToExamSessionAsync(examSessionId, studentId);
+
+                if (result)
+                {
+                    return Ok("Student added to the exam session successfully");
+                }
+                else
+                {
+                    return BadRequest("Failed to add the student to the exam session");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

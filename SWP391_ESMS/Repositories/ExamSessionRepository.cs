@@ -110,6 +110,34 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
+        public async Task<bool> AddStudentToExamSessionAsync(Guid examSessionId, Guid studentId)
+        {
+            try
+            {
+                var examSession = await _dbContext.ExamSessions.FindAsync(examSessionId);
+                var student = await _dbContext.Students.FindAsync(studentId);
+
+                if (examSession == null || student == null)
+                {
+                    return false; // Exam session or student not found.
+                }
+
+                // Check if the student is not already enrolled in the exam session.
+                if (!examSession.Students.Contains(student))
+                {
+                    examSession.Students.Add(student);
+                    await _dbContext.SaveChangesAsync();
+                    return true;
+                }
+
+                return false; // Student is already enrolled in the exam session.
+            }
+            catch (Exception)
+            {
+                return false; // Error occurred during the addition process.
+            }
+        }
+
         public async Task<Boolean> DeleteExamSessionAsync(ExamSessionModel model)
         {
             var deleteExamSession = await _dbContext.ExamSessions.FindAsync(model.ExamSessionId);
@@ -149,6 +177,34 @@ namespace SWP391_ESMS.Repositories
             catch (Exception)
             {
                 return null;
+            }
+        }
+
+        public async Task<bool> RemoveStudentFromExamSessionAsync(Guid examSessionId, Guid studentId)
+        {
+            try
+            {
+                var examSession = await _dbContext.ExamSessions.FindAsync(examSessionId);
+                var student = await _dbContext.Students.FindAsync(studentId);
+
+                if (examSession == null || student == null)
+                {
+                    return false; // Exam session or student not found.
+                }
+
+                // Check if the student is enrolled in the exam session.
+                if (examSession.Students.Contains(student))
+                {
+                    examSession.Students.Remove(student);
+                    await _dbContext.SaveChangesAsync();
+                    return true;
+                }
+
+                return false; // Student not enrolled in the exam session.
+            }
+            catch (Exception)
+            {
+                return false; // Error occurred during the removal process.
             }
         }
 
