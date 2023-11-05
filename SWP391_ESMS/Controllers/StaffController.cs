@@ -8,7 +8,6 @@ namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin, Testing Admin")]
     public class StaffController : ControllerBase
     {
         private readonly IStaffRepository _staffRepo;

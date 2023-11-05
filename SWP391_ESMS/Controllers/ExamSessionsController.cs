@@ -18,7 +18,6 @@ namespace SWP391_ESMS.Controllers
             _examRepo = examRepo;
         }
 
-        [Authorize(Roles = "Admin, Testing Admin, Testing Staff, Teacher")]
         [HttpGet("getall")]
         public async Task<IActionResult> GetAllExamSessions()
         {
@@ -32,7 +31,6 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin, Testing Admin, Testing Staff, Teacher, Student")]
         [HttpGet("getbyid/{id}")]
         public async Task<IActionResult> GetExamSessionById([FromRoute] Guid id)
         {
@@ -47,7 +45,6 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
         [HttpPost("create")]
         public async Task<IActionResult> AddExamSession([FromBody] ExamSessionModel model)
         {
@@ -75,7 +72,6 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
         [HttpPut("update")]
         public async Task<IActionResult> UpdateExamSession([FromBody] ExamSessionModel model)
         {
@@ -98,7 +94,6 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
         [HttpDelete("delete")]
         public async Task<IActionResult> DeleteExamSession([FromBody] ExamSessionModel model)
         {
@@ -121,7 +116,6 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [Authorize(Roles = "Student")]
         [HttpGet("getbystudent/{studentId}")]
         public async Task<IActionResult> GetExamSessionsByStudent([FromRoute] Guid studentId)
         {
@@ -135,7 +129,6 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
         [HttpDelete("removestudent/{examSessionId}/{studentId}")]
         public async Task<IActionResult> RemoveStudentFromExamSession([FromRoute] Guid examSessionId, [FromRoute] Guid studentId)
         {
@@ -158,7 +151,6 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
         [HttpPost("addstudent/{examSessionId}/{studentId}")]
         public async Task<IActionResult> AddStudentToExamSession([FromRoute] Guid examSessionId, [FromRoute] Guid studentId)
         {
@@ -173,6 +165,50 @@ namespace SWP391_ESMS.Controllers
                 else
                 {
                     return BadRequest("Failed to add the student to the exam session");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("addteacher/{examSessionId}/{teacherId}")]
+        public async Task<IActionResult> AddTeacherToExamSession([FromRoute] Guid examSessionId, [FromRoute] Guid teacherId)
+        {
+            try
+            {
+                bool result = await _examRepo.AddTeacherToExamSessionAsync(examSessionId, teacherId);
+
+                if (result)
+                {
+                    return Ok("Teacher added to the exam session successfully");
+                }
+                else
+                {
+                    return BadRequest("Failed to add the teacher to the exam session");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpDelete("removeteacher/{examSessionId}")]
+        public async Task<IActionResult> RemoveTeacherFromExamSession([FromRoute] Guid examSessionId)
+        {
+            try
+            {
+                bool result = await _examRepo.RemoveTeacherFromExamSessionAsync(examSessionId);
+
+                if (result)
+                {
+                    return Ok("Teacher removed from the exam session successfully");
+                }
+                else
+                {
+                    return BadRequest("Failed to remove the teacher from the exam session");
                 }
             }
             catch (Exception ex)

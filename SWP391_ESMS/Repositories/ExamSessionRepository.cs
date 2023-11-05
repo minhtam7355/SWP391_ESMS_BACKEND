@@ -138,6 +138,34 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
+        public async Task<bool> AddTeacherToExamSessionAsync(Guid examSessionId, Guid teacherId)
+        {
+            try
+            {
+                var examSession = await _dbContext.ExamSessions.FindAsync(examSessionId);
+                var teacher = await _dbContext.Teachers.FindAsync(teacherId);
+
+                if (examSession == null || teacher == null)
+                {
+                    return false; // Exam session or teacher not found.
+                }
+
+                // Check if the exam session already has a teacher assigned.
+                if (examSession.TeacherId != null)
+                {
+                    return false; // Teacher already assigned to the exam session.
+                }
+
+                examSession.TeacherId = teacher.TeacherId;
+                await _dbContext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false; // Error occurred during the assignment process.
+            }
+        }
+
         public async Task<Boolean> DeleteExamSessionAsync(ExamSessionModel model)
         {
             var deleteExamSession = await _dbContext.ExamSessions.FindAsync(model.ExamSessionId);
@@ -201,6 +229,33 @@ namespace SWP391_ESMS.Repositories
                 }
 
                 return false; // Student not enrolled in the exam session.
+            }
+            catch (Exception)
+            {
+                return false; // Error occurred during the removal process.
+            }
+        }
+
+        public async Task<bool> RemoveTeacherFromExamSessionAsync(Guid examSessionId)
+        {
+            try
+            {
+                var examSession = await _dbContext.ExamSessions.FindAsync(examSessionId);
+
+                if (examSession == null)
+                {
+                    return false; // Exam session not found.
+                }
+
+                // Check if the exam session has a teacher assigned.
+                if (examSession.TeacherId == null)
+                {
+                    return false; // No teacher assigned to the exam session.
+                }
+
+                examSession.TeacherId = null; // Remove the teacher assignment.
+                await _dbContext.SaveChangesAsync();
+                return true;
             }
             catch (Exception)
             {

@@ -8,7 +8,6 @@ namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin, Testing Admin, Testing Staff")]
     public class MajorsController : ControllerBase
     {
         private readonly IMajorRepository _majorRepo;

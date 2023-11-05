@@ -19,5 +19,9 @@ namespace SWP391_ESMS.Repositories
         public Task<Boolean> RemoveStudentFromExamSessionAsync(Guid examSessionId, Guid studentId);
 
         public Task<Boolean> AddStudentToExamSessionAsync(Guid examSessionId, Guid studentId);
+
+        public Task<Boolean> AddTeacherToExamSessionAsync(Guid examSessionId, Guid teacherId);
+
+        public Task<Boolean> RemoveTeacherFromExamSessionAsync(Guid examSessionId);
     }
 }
