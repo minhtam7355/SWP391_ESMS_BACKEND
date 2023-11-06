@@ -1,4 +1,5 @@
-﻿using SWP391_ESMS.Models.ViewModels;
+﻿using SWP391_ESMS.Models.Domain;
+using SWP391_ESMS.Models.ViewModels;
 
 namespace SWP391_ESMS.Repositories
 {
@@ -23,5 +24,9 @@ namespace SWP391_ESMS.Repositories
         public Task<Boolean> AddTeacherToExamSessionAsync(Guid examSessionId, Guid teacherId);
 
         public Task<Boolean> RemoveTeacherFromExamSessionAsync(Guid examSessionId);
+
+        public Task<List<ExamSessionModel>?> GetExamSessionsWithoutTeacherAsync();
+
+        public Task<List<ExamSessionModel>?> GetExamSessionsByTeacherAsync(Guid teacherId);
     }
 }

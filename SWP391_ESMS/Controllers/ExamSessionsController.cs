@@ -216,5 +216,31 @@ namespace SWP391_ESMS.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet("getexamsessionswithoutteacher")]
+        public async Task<IActionResult> GetExamSessionsWithoutTeacher()
+        {
+            try
+            {
+                return Ok(await _examRepo.GetExamSessionsWithoutTeacherAsync());
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("getexamsessionsbyteacher/{teacherId}")]
+        public async Task<IActionResult> GetExamSessionsByTeacher([FromRoute] Guid teacherId)
+        {
+            try
+            {
+                return Ok(await _examRepo.GetExamSessionsByTeacherAsync(teacherId));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

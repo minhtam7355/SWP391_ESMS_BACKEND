@@ -208,6 +208,38 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
+        public async Task<List<ExamSessionModel>?> GetExamSessionsByTeacherAsync(Guid teacherId)
+        {
+            try
+            {
+                var examSessions = await _dbContext.ExamSessions
+                    .Where(es => es.TeacherId == teacherId)
+                    .ToListAsync();
+
+                return _mapper.Map<List<ExamSessionModel>>(examSessions);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<List<ExamSessionModel>?> GetExamSessionsWithoutTeacherAsync()
+        {
+            try
+            {
+                var examSessions = await _dbContext.ExamSessions
+                    .Where(es => es.TeacherId == null)
+                    .ToListAsync();
+
+                return _mapper.Map<List<ExamSessionModel>>(examSessions);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         public async Task<bool> RemoveStudentFromExamSessionAsync(Guid examSessionId, Guid studentId)
         {
             try
