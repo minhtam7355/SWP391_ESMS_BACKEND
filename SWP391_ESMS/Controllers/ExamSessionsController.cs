@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using ClosedXML.Excel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
+using System.Data;
 using System.Security.Claims;
 
 namespace SWP391_ESMS.Controllers
@@ -241,6 +243,59 @@ namespace SWP391_ESMS.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpGet("exportexcel")]
+        public async Task<IActionResult> ExportExcel()
+        {
+            var examSessionsData = await GetAllExamSessionsData();
+            using(XLWorkbook wb = new XLWorkbook())
+            {
+                var ws = wb.AddWorksheet(examSessionsData, "Exam Session Records");
+
+                for (int i = 1; i <= examSessionsData.Columns.Count; i++)
+                {
+                    ws.Column(i).AdjustToContents();
+                }
+
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    wb.SaveAs(ms);
+                    return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ExamSessions.xlsx");
+                }
+            }
+        }
+
+        //Helper
+        private async Task<DataTable> GetAllExamSessionsData()
+        {
+            DataTable dt = new DataTable();
+            dt.TableName = "ExamSessionsData";
+            dt.Columns.Add("ExamSessionId", typeof(Guid));
+            dt.Columns.Add("CourseName", typeof(string));
+            dt.Columns.Add("ExamDate", typeof(string));
+            dt.Columns.Add("RoomName", typeof(string));
+            dt.Columns.Add("TeacherName", typeof(string));
+            dt.Columns.Add("StudentsEnrolled", typeof(int));
+            dt.Columns.Add("StaffName", typeof(string));
+            dt.Columns.Add("ShiftName", typeof(string));
+            dt.Columns.Add("StartTime", typeof(TimeSpan));
+            dt.Columns.Add("EndTime", typeof(TimeSpan));
+            dt.Columns.Add("IsPassed", typeof(bool));
+            dt.Columns.Add("IsPaid", typeof(bool));
+
+            var examSessions = await _examRepo.GetAllExamSessionsAsync();
+            if (examSessions.Count > 0)
+            {
+                foreach (var item in examSessions)
+                {
+                    string formattedExamDate = String.Format("{0:dd/MM/yyyy}", item.ExamDate);
+                    dt.Rows.Add(item.ExamSessionId, item.CourseName, formattedExamDate, item.RoomName, item.TeacherName, item.StudentsEnrolled, item.StaffName, item.ShiftName, item.StartTime, item.EndTime, item.IsPassed, item.IsPaid);
+                }
+            }
+
+            dt.DefaultView.Sort = "ExamDate DESC, EndTime ASC";
+            return dt.DefaultView.ToTable();
         }
     }
 }
