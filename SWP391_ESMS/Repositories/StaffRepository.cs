@@ -35,9 +35,9 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
-        public async Task<Boolean> DeleteStaffAsync(StaffModel model)
+        public async Task<Boolean> DeleteStaffAsync(Guid id)
         {
-            var deleteStaff = await _dbContext.Staff.FindAsync(model.StaffId);
+            var deleteStaff = await _dbContext.Staff.FindAsync(id);
             if (deleteStaff != null)
             {
                 _dbContext.Staff.Remove(deleteStaff);

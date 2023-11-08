@@ -90,12 +90,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteStaff([FromBody] StaffModel model)
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteStaff([FromRoute] Guid id)
         {
             try
             {
-                bool result = await _staffRepo.DeleteStaffAsync(model);
+                bool result = await _staffRepo.DeleteStaffAsync(id);
 
                 if (result)
                 {

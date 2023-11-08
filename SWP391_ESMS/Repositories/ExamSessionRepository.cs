@@ -23,16 +23,30 @@ namespace SWP391_ESMS.Repositories
         {
             try
             {
-                // Fetch students taking the course
+                // Fetch students who are taking the specified course and meet the following criteria:
+                // They have no active exam sessions for the same course and format.
                 var courseEnrollments = await _dbContext.Courses
                     .Where(ce => ce.CourseId == model.CourseId)
-                    .Select(ce => ce.Students)
-                    .SingleOrDefaultAsync();
+                    .SelectMany(ce => ce.Students
+                        .Where(student => !student.ExamSessions
+                            .Any(es =>
+                                es.CourseId == model.CourseId &&
+                                es.ExamFormat == model.ExamFormat &&
+                                es.IsPassed == false)))
+                    .ToListAsync();
+
+
+                // Check if there are eligible students in the course
+                if (courseEnrollments == null || !courseEnrollments.Any())
+                {
+                    return false; // No eligible students for the course and format.
+                }
 
                 // Determine the number of exam sessions needed
-                if (courseEnrollments == null) return false;
                 int numStudents = courseEnrollments.Count;
-                int maxStudentsPerSession = 30;
+                int maxStudentsPerSession = (int) await _dbContext.ConfigurationSettings
+                                                                .Where(cs => cs.SettingName == "Max Students Per Session")
+                                                                .Select(cs => cs.SettingValue).SingleOrDefaultAsync();
                 int numSessions = (int)Math.Ceiling((double)numStudents / maxStudentsPerSession);
 
                 // Get all exam rooms and exam shifts
@@ -48,17 +62,18 @@ namespace SWP391_ESMS.Repositories
                     .Select(es => new { es.RoomId, es.ShiftId })
                     .ToListAsync();
 
-                // Remove combinations that are already in use on the same date
+                // Remove combinations that are already in use on the same date and format
                 var availableCombinations = allCombinations
                     .Where(combination =>
                         !existingSessionsSameDate.Any(existingSession =>
-                        existingSession.RoomId == combination.room.RoomId && existingSession.ShiftId == combination.shift.ShiftId))
+                            existingSession.RoomId == combination.room.RoomId &&
+                            existingSession.ShiftId == combination.shift.ShiftId))
                     .ToList();
 
                 // Check if the number of available combinations is lower than the number of numSessions
                 if (availableCombinations.Count < numSessions)
                 {
-                    return false;
+                    return false; // Not enough available combinations.
                 }
 
                 // Generate and create unique exam sessions
@@ -72,22 +87,20 @@ namespace SWP391_ESMS.Repositories
                     {
                         ExamSessionId = Guid.NewGuid(),
                         CourseId = model.CourseId,
+                        ExamFormat = model.ExamFormat,
                         ExamDate = model.ExamDate,
-                        RoomId = availableCombination.room.RoomId,
-                        TeacherId = null,
-                        StudentsEnrolled = 0, // Initialize students enrolled to 0
-                        StaffId = model.StaffId,
                         ShiftId = availableCombination.shift.ShiftId,
+                        RoomId = availableCombination.room.RoomId,
+                        StudentsEnrolled = 0, // Initialize students enrolled to 0
+                        TeacherId = null,
+                        StaffId = model.StaffId,
                         IsPassed = false,
                         IsPaid = false
                     };
 
-                    // Fetch 30 students for this session and register them
-                    int studentsToTake = Math.Min(30, courseEnrollments.Count); // Take up to 30 students or the remaining students.
-
-                    var studentsToAdd = courseEnrollments.Take(studentsToTake).ToList();
-                    var studentsForSession = new List<Student>();
-                    studentsForSession.AddRange(studentsToAdd);
+                    // Fetch students for this session and register them
+                    int studentsToTake = Math.Min(maxStudentsPerSession, courseEnrollments.Count); // Take up to maxStudentsPerSession or the remaining students.
+                    var studentsForSession = courseEnrollments.Take(studentsToTake).ToList();
                     courseEnrollments = courseEnrollments.Skip(studentsToTake).ToList();
 
                     foreach (var student in studentsForSession)
@@ -166,9 +179,9 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
-        public async Task<Boolean> DeleteExamSessionAsync(ExamSessionModel model)
+        public async Task<Boolean> DeleteExamSessionAsync(Guid id)
         {
-            var deleteExamSession = await _dbContext.ExamSessions.FindAsync(model.ExamSessionId);
+            var deleteExamSession = await _dbContext.ExamSessions.FindAsync(id);
             if (deleteExamSession != null)
             {
                 _dbContext.ExamSessions.Remove(deleteExamSession);
@@ -181,6 +194,23 @@ namespace SWP391_ESMS.Repositories
         public async Task<List<ExamSessionModel>> GetAllExamSessionsAsync()
         {
             var examSessions = await _dbContext.ExamSessions.ToListAsync();
+
+            DateTime currentDate = DateTime.Now;
+
+            foreach (var examSession in examSessions)
+            {
+                if (examSession.ExamDate < currentDate)
+                {
+                    examSession.IsPassed = true; // Update isPassed to true if the exam date is in the past.
+                }
+                else
+                {
+                    examSession.IsPassed = false; // Update isPassed to false if the exam date is in the future.
+                }
+            }
+
+            await _dbContext.SaveChangesAsync();
+
             return _mapper.Map<List<ExamSessionModel>>(examSessions);
 
         }

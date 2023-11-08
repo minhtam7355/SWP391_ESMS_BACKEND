@@ -4,7 +4,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using SWP391_ESMS.Data;
+using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
+using SWP391_ESMS.Services;
 using SWP391_ESMS.Swagger;
 using System.Text;
 
@@ -45,6 +47,9 @@ builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwa
 
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<IEmailService, EmailService>();
 
 //Connect to the database
 builder.Services.AddDbContext<ESMSDbContext>(option =>

@@ -34,9 +34,9 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
-        public async Task<Boolean> DeleteCourseAsync(CourseModel model)
+        public async Task<Boolean> DeleteCourseAsync(Guid id)
         {
-            var deleteCourse = await _dbContext.Courses.FindAsync(model.CourseId);
+            var deleteCourse = await _dbContext.Courses.FindAsync(id);
             if (deleteCourse != null)
             {
                 _dbContext.Courses.Remove(deleteCourse);

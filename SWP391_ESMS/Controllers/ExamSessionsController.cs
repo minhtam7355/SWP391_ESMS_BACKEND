@@ -96,12 +96,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteExamSession([FromBody] ExamSessionModel model)
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteExamSession([FromRoute] Guid id)
         {
             try
             {
-                bool result = await _examRepo.DeleteExamSessionAsync(model);
+                bool result = await _examRepo.DeleteExamSessionAsync(id);
 
                 if (result)
                 {
@@ -249,7 +249,7 @@ namespace SWP391_ESMS.Controllers
         public async Task<IActionResult> ExportExcel()
         {
             var examSessionsData = await GetAllExamSessionsData();
-            using(XLWorkbook wb = new XLWorkbook())
+            using (XLWorkbook wb = new XLWorkbook())
             {
                 var ws = wb.AddWorksheet(examSessionsData, "Exam Session Records");
 
@@ -266,21 +266,23 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        //Helper
+        // Helper
+        [NonAction]
         private async Task<DataTable> GetAllExamSessionsData()
         {
             DataTable dt = new DataTable();
             dt.TableName = "ExamSessionsData";
             dt.Columns.Add("ExamSessionId", typeof(Guid));
             dt.Columns.Add("CourseName", typeof(string));
+            dt.Columns.Add("ExamFormat", typeof(string));
             dt.Columns.Add("ExamDate", typeof(string));
-            dt.Columns.Add("RoomName", typeof(string));
-            dt.Columns.Add("TeacherName", typeof(string));
-            dt.Columns.Add("StudentsEnrolled", typeof(int));
-            dt.Columns.Add("StaffName", typeof(string));
             dt.Columns.Add("ShiftName", typeof(string));
             dt.Columns.Add("StartTime", typeof(TimeSpan));
             dt.Columns.Add("EndTime", typeof(TimeSpan));
+            dt.Columns.Add("RoomName", typeof(string));
+            dt.Columns.Add("StudentsEnrolled", typeof(int));
+            dt.Columns.Add("TeacherName", typeof(string));
+            dt.Columns.Add("StaffName", typeof(string));
             dt.Columns.Add("IsPassed", typeof(bool));
             dt.Columns.Add("IsPaid", typeof(bool));
 
@@ -290,7 +292,7 @@ namespace SWP391_ESMS.Controllers
                 foreach (var item in examSessions)
                 {
                     string formattedExamDate = String.Format("{0:dd/MM/yyyy}", item.ExamDate);
-                    dt.Rows.Add(item.ExamSessionId, item.CourseName, formattedExamDate, item.RoomName, item.TeacherName, item.StudentsEnrolled, item.StaffName, item.ShiftName, item.StartTime, item.EndTime, item.IsPassed, item.IsPaid);
+                    dt.Rows.Add(item.ExamSessionId, item.CourseName, item.ExamFormat, formattedExamDate, item.ShiftName, item.StartTime, item.EndTime, item.RoomName, item.StudentsEnrolled, item.TeacherName, item.StaffName, item.IsPassed, item.IsPaid);
                 }
             }
 

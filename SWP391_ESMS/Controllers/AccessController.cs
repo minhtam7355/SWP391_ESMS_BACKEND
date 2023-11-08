@@ -40,6 +40,8 @@ namespace SWP391_ESMS.Controllers
             return response;
         }
 
+        // Helper
+        [NonAction]
         private string GenerateJSONWebToken(UserInfo user, bool rememberMe)
         {
             if (user != null)

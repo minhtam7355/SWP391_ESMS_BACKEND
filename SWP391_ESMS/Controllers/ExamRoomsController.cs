@@ -89,12 +89,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteExamRoom([FromBody] ExamRoomModel model)
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteExamRoom([FromRoute] Guid id)
         {
             try
             {
-                bool result = await _roomRepo.DeleteExamRoomAsync(model);
+                bool result = await _roomRepo.DeleteExamRoomAsync(id);
 
                 if (result)
                 {

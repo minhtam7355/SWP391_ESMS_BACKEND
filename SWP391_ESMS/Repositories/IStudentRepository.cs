@@ -12,7 +12,7 @@ namespace SWP391_ESMS.Repositories
 
         public Task<Boolean> UpdateStudentAsync(StudentModel model);
 
-        public Task<Boolean> DeleteStudentAsync(StudentModel model);
+        public Task<Boolean> DeleteStudentAsync(Guid id);
 
         public Task<List<StudentModel>?> GetStudentsByExamSessionAsync(Guid examSessionId);
 

@@ -89,12 +89,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteCourse([FromBody] CourseModel model)
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteCourse([FromRoute] Guid id)
         {
             try
             {
-                bool result = await _courseRepo.DeleteCourseAsync(model);
+                bool result = await _courseRepo.DeleteCourseAsync(id);
 
                 if (result)
                 {

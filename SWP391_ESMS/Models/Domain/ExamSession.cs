@@ -9,17 +9,19 @@ public partial class ExamSession
 
     public Guid? CourseId { get; set; }
 
+    public string? ExamFormat { get; set; }
+
     public DateTime? ExamDate { get; set; }
+
+    public Guid? ShiftId { get; set; }
 
     public Guid? RoomId { get; set; }
 
-    public Guid? TeacherId { get; set; }
-
     public int? StudentsEnrolled { get; set; }
 
-    public Guid? StaffId { get; set; }
+    public Guid? TeacherId { get; set; }
 
-    public Guid? ShiftId { get; set; }
+    public Guid? StaffId { get; set; }
 
     public bool? IsPassed { get; set; }
 

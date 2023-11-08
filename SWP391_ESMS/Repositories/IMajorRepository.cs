@@ -12,7 +12,7 @@ namespace SWP391_ESMS.Repositories
 
         public Task<Boolean> UpdateMajorAsync(MajorModel model);
 
-        public Task<Boolean> DeleteMajorAsync(MajorModel model);
+        public Task<Boolean> DeleteMajorAsync(Guid id);
 
         public Task<Guid> GetMajorIdByName(string majorName);
     }

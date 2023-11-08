@@ -82,12 +82,13 @@ CREATE TABLE ExamShifts (
 CREATE TABLE ExamSessions (
     ExamSessionID UNIQUEIDENTIFIER PRIMARY KEY,
     CourseID UNIQUEIDENTIFIER, -- Foreign key reference to Courses
+	ExamFormat VARCHAR(255), -- New field to store the exam format
 	ExamDate DATE,
+	ShiftID UNIQUEIDENTIFIER, -- Foreign key reference to ExamShifts
 	RoomID UNIQUEIDENTIFIER, -- Foreign key reference to ExamRooms
-	TeacherID UNIQUEIDENTIFIER, -- Foreign key reference to Teachers
 	StudentsEnrolled INT,
+	TeacherID UNIQUEIDENTIFIER, -- Foreign key reference to Teachers
     StaffID UNIQUEIDENTIFIER, -- Foreign key reference to Staff (Testing Admin)
-    ShiftID UNIQUEIDENTIFIER, -- Foreign key reference to ExamShifts
 	IsPassed BIT,
 	IsPaid BIT,
     FOREIGN KEY (CourseID) REFERENCES Courses(CourseID),
@@ -2130,13 +2131,13 @@ VALUES
     (NEWID(), 'Shift 7', '17:30:00', '19:00:00');
 
 -- Insert data into the ExamSessions table
-INSERT INTO ExamSessions (ExamSessionID, CourseID, ExamDate, RoomID, TeacherID, StudentsEnrolled, StaffID, ShiftID, IsPassed, IsPaid)
+INSERT INTO ExamSessions (ExamSessionID, CourseID, ExamFormat, ExamDate, ShiftID, RoomID, StudentsEnrolled, TeacherID, StaffID, IsPassed, IsPaid)
 VALUES
-    (NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development'), '2023-11-10', (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 1'), (SELECT TeacherID FROM Teachers WHERE FullName = 'Moshe Barrington'), 15, (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 1'), 0, 0),
-    (NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals'), '2023-11-10', (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 3'), (SELECT TeacherID FROM Teachers WHERE FullName = 'Derek Odlin'), 15, (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 1'), 0, 0),
-    (NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics'), '2023-11-10', (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 1'), (SELECT TeacherID FROM Teachers WHERE FullName = 'Olva Hankin'), 15, (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 3'), 0, 0),
-	(NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing'), '2023-11-11', (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 1'), (SELECT TeacherID FROM Teachers WHERE FullName = 'Sebastiano Forrestor'), 15, (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 1'), 0, 0),
-	(NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management'), '2023-11-11', (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 5'), (SELECT TeacherID FROM Teachers WHERE FullName = 'Lacey Rizzolo'), 15, (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 7'), 0, 0);
+    (NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development'), 'Theory Exam', '2023-11-10', (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 1'), (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 1'), 15, (SELECT TeacherID FROM Teachers WHERE FullName = 'Moshe Barrington'), (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), 0, 0),
+    (NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals'), 'Theory Exam', '2023-11-10', (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 1'), (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 3'), 15, (SELECT TeacherID FROM Teachers WHERE FullName = 'Derek Odlin'), (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), 0, 0),
+    (NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics'), 'Practical Exam', '2023-11-10', (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 3'), (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 1'), 15, (SELECT TeacherID FROM Teachers WHERE FullName = 'Olva Hankin'), (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), 0, 0),
+	(NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing'), 'Theory Exam', '2023-11-11', (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 1'), (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 1'), 15, (SELECT TeacherID FROM Teachers WHERE FullName = 'Sebastiano Forrestor'), (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), 0, 0),
+	(NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management'), 'Theory Exam', '2023-11-11', (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 7'), (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 5'), 15, (SELECT TeacherID FROM Teachers WHERE FullName = 'Lacey Rizzolo'), (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), 0, 0);
 
 -- Insert data into the ExamEnrollments table
 INSERT INTO ExamEnrollments (ExamSessionID, StudentID)
@@ -2231,7 +2232,8 @@ INSERT INTO ConfigurationSettings(SettingID, SettingName, SettingValue, SettingD
 VALUES
 	(NEWID(), 'Scheduling Period','7','The number of days required to schedule an exam in advance'),
 	(NEWID(), 'Cancellation Notice','3','The number of days before the exam when the lecturer is not allowed to cancel the appointment'),
-	(NEWID(), 'Hourly Supervision Fee','100000','The cost of exam supervision per hour');
+	(NEWID(), 'Hourly Supervision Fee','100000','The cost of exam supervision per hour'),
+	(NEWID(), 'Max Students Per Session','30','The maximum number of students allowed in a single exam session');
 
 
 

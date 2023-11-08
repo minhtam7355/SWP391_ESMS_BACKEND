@@ -12,6 +12,6 @@ namespace SWP391_ESMS.Repositories
 
         public Task<Boolean> UpdateStaffAsync(StaffModel model);
 
-        public Task<Boolean> DeleteStaffAsync(StaffModel model);
+        public Task<Boolean> DeleteStaffAsync(Guid id);
     }
 }

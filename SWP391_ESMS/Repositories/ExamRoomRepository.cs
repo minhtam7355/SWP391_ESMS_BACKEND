@@ -34,9 +34,9 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
-        public async Task<Boolean> DeleteExamRoomAsync(ExamRoomModel model)
+        public async Task<Boolean> DeleteExamRoomAsync(Guid id)
         {
-            var deleteRoom = await _dbContext.ExamRooms.FindAsync(model.RoomId);
+            var deleteRoom = await _dbContext.ExamRooms.FindAsync(id);
             if (deleteRoom != null)
             {
                 _dbContext.ExamRooms.Remove(deleteRoom);

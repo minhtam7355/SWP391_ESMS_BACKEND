@@ -65,11 +65,11 @@ namespace SWP391_ESMS.Controllers
                 if (user == null) { return BadRequest("Failed to establish a link with the User"); }
                 if (model.NewPassword != model.ConfirmPassword) return BadRequest("New password and confirm password must be the same");
                 if (BC.EnhancedVerify(model.NewPassword, user.PasswordHash)) return BadRequest("New password cannot be the same as the current password");
-                if (model.NewPassword!.Contains(user.Username!)) return BadRequest("New password cannot contain the username"); 
+                if (model.NewPassword!.Contains(user.Username!)) return BadRequest("New password cannot contain the username");
                 if (!BC.EnhancedVerify(model.CurrentPassword, user.PasswordHash)) return BadRequest("Incorrect current password");
 
                 bool result = await _profileRepo.ChangePasswordAsync(model, user.UserId, user.Role!);
-                
+
                 if (result)
                 {
                     return Ok("Changed Password Successfully");
@@ -86,6 +86,7 @@ namespace SWP391_ESMS.Controllers
         }
 
         // Helper method to get the current user's profile
+        [NonAction]
         private async Task<UserInfo?> GetCurrentUserProfileAsync()
         {
             var sidClaim = User.FindFirst(ClaimTypes.Sid);

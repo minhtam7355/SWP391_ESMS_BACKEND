@@ -34,9 +34,9 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
-        public async Task<Boolean> DeleteExamShiftAsync(ExamShiftModel model)
+        public async Task<Boolean> DeleteExamShiftAsync(Guid id)
         {
-            var deleteExamShift = await _dbContext.ExamShifts.FindAsync(model.ShiftId);
+            var deleteExamShift = await _dbContext.ExamShifts.FindAsync(id);
             if (deleteExamShift != null)
             {
                 _dbContext.ExamShifts.Remove(deleteExamShift);

@@ -35,9 +35,9 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
-        public async Task<Boolean> DeleteStudentAsync(StudentModel model)
+        public async Task<Boolean> DeleteStudentAsync(Guid id)
         {
-            var deleteStudent = await _dbContext.Students.FindAsync(model.StudentId);
+            var deleteStudent = await _dbContext.Students.FindAsync(id);
             if (deleteStudent != null)
             {
                 _dbContext.Students.Remove(deleteStudent);

@@ -88,12 +88,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteMajor([FromBody] MajorModel model)
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteMajor([FromRoute] Guid id)
         {
             try
             {
-                bool result = await _majorRepo.DeleteMajorAsync(model);
+                bool result = await _majorRepo.DeleteMajorAsync(id);
 
                 if (result)
                 {

@@ -1,5 +1,4 @@
-﻿using SWP391_ESMS.Models.Domain;
-using SWP391_ESMS.Models.ViewModels;
+﻿using SWP391_ESMS.Models.ViewModels;
 
 namespace SWP391_ESMS.Repositories
 {
@@ -13,7 +12,7 @@ namespace SWP391_ESMS.Repositories
 
         public Task<Boolean> UpdateExamSessionAsync(ExamSessionModel model);
 
-        public Task<Boolean> DeleteExamSessionAsync(ExamSessionModel model);
+        public Task<Boolean> DeleteExamSessionAsync(Guid id);
 
         public Task<List<ExamSessionModel>?> GetExamSessionsByStudentAsync(Guid studentId);
 

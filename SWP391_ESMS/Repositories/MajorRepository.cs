@@ -35,9 +35,9 @@ namespace SWP391_ESMS.Repositories
 
         }
 
-        public async Task<Boolean> DeleteMajorAsync(MajorModel model)
+        public async Task<Boolean> DeleteMajorAsync(Guid id)
         {
-            var deleteMajor = await _dbContext.Majors.FindAsync(model.MajorId);
+            var deleteMajor = await _dbContext.Majors.FindAsync(id);
             if (deleteMajor != null)
             {
                 _dbContext.Majors.Remove(deleteMajor);

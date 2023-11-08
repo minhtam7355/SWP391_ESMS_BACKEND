@@ -89,12 +89,12 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteExamShift([FromBody] ExamShiftModel model)
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteExamShift([FromRoute] Guid id)
         {
             try
             {
-                bool result = await _shiftRepo.DeleteExamShiftAsync(model);
+                bool result = await _shiftRepo.DeleteExamShiftAsync(id);
 
                 if (result)
                 {
