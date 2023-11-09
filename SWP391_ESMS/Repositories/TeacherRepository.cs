@@ -53,6 +53,13 @@ namespace SWP391_ESMS.Repositories
             return _mapper.Map<List<TeacherModel>>(teachers);
         }
 
+        public async Task<TeacherModel?> GetTeacherByExamSessionAsync(Guid examSessionId)
+        {
+            var examSession = await _dbContext.ExamSessions.FindAsync(examSessionId);
+            if (examSession == null || examSession.Teacher == null) return null;
+            return _mapper.Map<TeacherModel>(examSession.Teacher);
+        }
+
         public async Task<TeacherModel> GetTeacherByIdAsync(Guid id)
         {
             var teacher = await _dbContext.Teachers.FindAsync(id);

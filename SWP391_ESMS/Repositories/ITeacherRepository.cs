@@ -13,5 +13,7 @@ namespace SWP391_ESMS.Repositories
         public Task<Boolean> UpdateTeacherAsync(TeacherModel model);
 
         public Task<Boolean> DeleteTeacherAsync(Guid id);
+
+        public Task<TeacherModel?> GetTeacherByExamSessionAsync(Guid examSessionId);
     }
 }

@@ -1,20 +1,25 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
+using SWP391_ESMS.Services;
 
 namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class TeachersController : ControllerBase
     {
         private readonly ITeacherRepository _teacherRepo;
+        private readonly IExamSessionRepository _examRepo;
+        private readonly IEmailService _emailService;
 
-        public TeachersController(ITeacherRepository teacherRepo)
+        public TeachersController(ITeacherRepository teacherRepo, IExamSessionRepository examRepo, IEmailService emailService)
         {
             _teacherRepo = teacherRepo;
+            _examRepo = examRepo;
+            _emailService = emailService;
         }
 
         [HttpGet("getall")]
@@ -111,6 +116,64 @@ namespace SWP391_ESMS.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpPost("sendmail/{examSessionId}")]
+        public async Task<IActionResult> SendMail([FromRoute] Guid examSessionId)
+        {
+            try
+            {
+                var examSession = await _examRepo.GetExamSessionByIdAsync(examSessionId);
+                string formattedExamDate = String.Format("{0:dd/MM/yyyy}", examSession.ExamDate);
+                var teacher = await _teacherRepo.GetTeacherByExamSessionAsync(examSessionId);
+                if (teacher == null) return BadRequest("No teacher found in the exam session to send email");
+
+                EmailRequest mailrequest = new EmailRequest();
+                mailrequest.ToEmail = teacher.Email;
+                mailrequest.Subject = $"Exam Proctoring Assignment - {formattedExamDate}";
+                mailrequest.Body = await GetHtmlContent(examSessionId);
+
+                await _emailService.SendEmailAsync(mailrequest);
+
+                // Testing
+                //EmailRequest mailrequest = new EmailRequest();
+                //mailrequest.ToEmail = "tamtmse173551@fpt.edu.vn";
+                //mailrequest.Subject = $"Exam Proctoring Assignment - {formattedExamDate}";
+                //mailrequest.Body = await GetHtmlContent(examSessionId);
+                //await _emailService.SendEmailAsync(mailrequest);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // Helper
+        [NonAction]
+        private async Task<string> GetHtmlContent(Guid examSessionId)
+        {
+            var examSession = await _examRepo.GetExamSessionByIdAsync(examSessionId);
+            string formattedExamDate = String.Format("{0:dd/MM/yyyy}", examSession.ExamDate);
+            string Response = "<div style=\"width:100%;margin:10px;font-family:Arial,sans-serif;font-size:14px;color:black;\">";
+            Response += "<p>Dear Teacher,</p>";
+            Response += "<br>";
+            Response += $"<p>We would like to inform you that you have been assigned to proctor the upcoming exam on {formattedExamDate}. Your role as a proctor is crucial for a smooth and fair examination process.</p>";
+            Response += "<strong>Exam Details:</strong>";
+            Response += "<ul>";
+            Response += $"<li>Course Name: {examSession.CourseName}</li>";
+            Response += $"<li>Exam Format: {examSession.ExamFormat}</li>";
+            Response += $"<li>Exam Date and Time: {formattedExamDate}, {examSession.StartTime} - {examSession.EndTime}</li>";
+            Response += $"<li>Exam Location: {examSession.RoomName}</li>";
+            Response += "</ul>";
+            Response += "<p>In case of any issues or questions during the exam, please contact examschedulemanagementsystem@gmail.com. Your support in ensuring the integrity of the exam is greatly appreciated.</p>";
+            Response += "<p>Thank you for your dedication to the examination process.</p>";
+            Response += "<br>";
+            Response += "<p>Best regards,</p>";
+            Response += "<p>ESMS</p>";
+            Response += "</div>";
+            return Response;
         }
     }
 }

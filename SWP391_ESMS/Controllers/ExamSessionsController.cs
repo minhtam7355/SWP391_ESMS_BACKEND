@@ -1,16 +1,17 @@
 ﻿using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
 using System.Data;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ExamSessionsController : ControllerBase
     {
         private readonly IExamSessionRepository _examRepo;
@@ -52,10 +53,19 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
-                var sidClaim = User.FindFirst(ClaimTypes.Sid);
-
-                if (sidClaim != null && Guid.TryParse(sidClaim.Value, out Guid userId)) model.StaffId = userId;
-                else return BadRequest("Failed to establish a link with the Staff ID");
+                var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+                if (securityToken != null)
+                {
+                    var sidClaim = securityToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Sid);
+                    if (sidClaim != null && Guid.TryParse(sidClaim.Value, out Guid userId)) model.StaffId = userId;
+                    else return BadRequest("Failed to establish a link with the Staff ID");
+                }
+                else
+                {
+                    return BadRequest("Failed to establish a link with the Staff ID");
+                }
 
                 bool result = await _examRepo.AddExamSessionAsync(model);
 

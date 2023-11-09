@@ -1,17 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SWP391_ESMS.Models.Domain;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace SWP391_ESMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ProfileController : ControllerBase
     {
         private readonly IProfileRepository _profileRepo;
@@ -89,13 +87,19 @@ namespace SWP391_ESMS.Controllers
         [NonAction]
         private async Task<UserInfo?> GetCurrentUserProfileAsync()
         {
-            var sidClaim = User.FindFirst(ClaimTypes.Sid);
-            var roleClaim = User.FindFirst(ClaimTypes.Role);
-
-            if (sidClaim != null && roleClaim != null && Guid.TryParse(sidClaim.Value, out Guid userId))
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+            if (securityToken != null)
             {
-                string userRole = roleClaim.Value;
-                return await _profileRepo.GetUserProfileAsync(userId, userRole);
+                var sidClaim = securityToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Sid);
+                var roleClaim = securityToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Role);
+
+                if (sidClaim != null && roleClaim != null && Guid.TryParse(sidClaim.Value, out Guid userId))
+                {
+                    string userRole = roleClaim.Value;
+                    return await _profileRepo.GetUserProfileAsync(userId, userRole);
+                }
             }
 
             throw new Exception("Failed to establish a link with the User");
