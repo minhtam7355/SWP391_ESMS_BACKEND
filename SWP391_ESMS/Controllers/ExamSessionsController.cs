@@ -1,11 +1,14 @@
 ﻿using ClosedXML.Excel;
+using ExcelDataReader;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
 using System.Data;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 
 namespace SWP391_ESMS.Controllers
 {
@@ -15,10 +18,14 @@ namespace SWP391_ESMS.Controllers
     public class ExamSessionsController : ControllerBase
     {
         private readonly IExamSessionRepository _examRepo;
+        private readonly ICourseRepository _courseRepo;
+        private readonly IConfigurationSettingRepository _settingRepo;
 
-        public ExamSessionsController(IExamSessionRepository examRepo)
+        public ExamSessionsController(IExamSessionRepository examRepo, ICourseRepository courseRepo, IConfigurationSettingRepository settingRepo)
         {
             _examRepo = examRepo;
+            _courseRepo = courseRepo;
+            _settingRepo = settingRepo;
         }
 
         [HttpGet("getall")]
@@ -60,11 +67,11 @@ namespace SWP391_ESMS.Controllers
                 {
                     var sidClaim = securityToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Sid);
                     if (sidClaim != null && Guid.TryParse(sidClaim.Value, out Guid userId)) model.StaffId = userId;
-                    else return BadRequest("Failed to establish a link with the Staff ID");
+                    else return BadRequest("Unable to establish a link with the Staff ID");
                 }
                 else
                 {
-                    return BadRequest("Failed to establish a link with the Staff ID");
+                    return BadRequest("Authentication token is invalid or missing");
                 }
 
                 bool result = await _examRepo.AddExamSessionAsync(model);
@@ -308,6 +315,143 @@ namespace SWP391_ESMS.Controllers
 
             dt.DefaultView.Sort = "ExamDate DESC, EndTime ASC";
             return dt.DefaultView.ToTable();
+        }
+
+        [HttpPost("uploadexcel")]
+        public async Task<IActionResult> UploadExcel(IFormFile file)
+        {
+            // Initialize user ID and message
+            Guid userId = Guid.Empty;
+            string msg = "";
+
+            // Retrieve the scheduling period setting
+            var schedulingPeriodSetting = await _settingRepo.GetSettingByNameAsync("Scheduling Period");
+            int schedulingPeriod = Convert.ToInt32(schedulingPeriodSetting!.SettingValue);
+
+            // Calculate the minimum allowed date
+            DateTime currentDate = DateTime.Now.Date;
+            DateTime minAllowedDate = currentDate.AddDays(schedulingPeriod);
+
+            // Extract the user's authentication token
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+            if (securityToken != null)
+            {
+                var sidClaim = securityToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Sid);
+                if (sidClaim == null || !Guid.TryParse(sidClaim.Value, out userId)) return BadRequest("Unable to establish a link with the Staff ID");
+            }
+            else
+            {
+                return BadRequest("Authentication token is invalid or missing");
+            }
+
+            // Ensure the file format is correct
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            // List to store validated exam sessions
+            var examSessions = new List<ExamSessionModel>();
+
+            if (file != null && file.Length > 0)
+            {
+                // Define the upload folder and file path
+                var uploadsFolder = $"{Directory.GetCurrentDirectory()}\\wwwroot\\Uploads\\";
+
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var filePath = Path.Combine(uploadsFolder, file.FileName);
+
+                // Save the uploaded file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Validate the contents of the Excel file
+                using (var stream = System.IO.File.Open(filePath, FileMode.Open, FileAccess.Read))
+                {
+                    using (var reader = ExcelReaderFactory.CreateReader(stream))
+                    {
+                        do
+                        {
+                            bool isHeaderSkipped = false;
+
+                            while (reader.Read())
+                            {
+                                if (!isHeaderSkipped)
+                                {
+                                    // Skip the header row
+                                    isHeaderSkipped = true;
+                                    continue;
+                                }
+
+                                // Initialize a new ExamSessionModel
+                                var examSession = new ExamSessionModel();
+                                examSession.StaffId = userId;
+                                examSession.CourseId = await _courseRepo.GetCourseIdByNameAsync(reader.GetValue(0).ToString());
+                                examSession.CourseName = reader.GetValue(0).ToString();
+
+                                // Validate course existence
+                                if (examSession.CourseId == null)
+                                {
+                                    return BadRequest($"The course '{examSession.CourseName}' doesn't exist in the database");
+                                }
+
+                                examSession.ExamFormat = reader.GetValue(1).ToString();
+
+                                // Validate exam format
+                                if (examSession.ExamFormat != "Theory Exam" && examSession.ExamFormat != "Practical Exam")
+                                {
+                                    return BadRequest($"Invalid exam format: '{examSession.ExamFormat}'. Supported formats are 'Theory Exam' and 'Practical Exam'.");
+                                }
+
+                                // Validate and parse the exam date
+                                if (!DateTime.TryParseExact(reader.GetValue(2).ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime examDate))
+                                {
+                                    return BadRequest($"Invalid date format: '{reader.GetValue(2)}'. The date should be in the format 'DD/MM/YYYY'.");
+                                }
+
+                                // Check if the exam date is within the allowed scheduling period
+                                if (examDate < minAllowedDate)
+                                {
+                                    return BadRequest($"The exam date '{examDate.ToString("dd/MM/yyyy")}' is not allowed. Exams can be scheduled starting from '{minAllowedDate.ToString("dd/MM/yyyy")}'.");
+                                }
+
+                                examSession.ExamDate = examDate;
+
+                                // Store the validated exam session
+                                examSessions.Add(examSession);
+
+                            }
+                        } while (reader.NextResult());
+                    }
+                }
+
+                // Process the validated exam sessions
+                foreach (var examSession in examSessions)
+                {
+                    bool result = await _examRepo.AddExamSessionAsync(examSession);
+
+                    // Generate messages based on the processing result
+                    if (result)
+                    {
+                        msg += $"Successfully added exam sessions for course '{examSession.CourseName}', format '{examSession.ExamFormat}' on '{examSession.ExamDate:dd/MM/yyyy}'\n";
+                    }
+                    else
+                    {
+                        msg += $"Failed to add exam sessions for course '{examSession.CourseName}', format '{examSession.ExamFormat}' on '{examSession.ExamDate:dd/MM/yyyy}'\n";
+                    }
+                }
+
+                // Return success or error message
+                return Ok(msg);
+            }
+
+            // Return a BadRequest response for an empty file
+            return BadRequest("The uploaded file is empty");
         }
     }
 }

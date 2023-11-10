@@ -23,6 +23,7 @@ namespace SWP391_ESMS.Repositories
             {
                 var newCourse = _mapper.Map<Course>(model);
                 newCourse.CourseId = Guid.NewGuid();
+                newCourse.Major = await _dbContext.Majors.FindAsync(newCourse.MajorId);
                 await _dbContext.Courses.AddAsync(newCourse);
                 await _dbContext.SaveChangesAsync();
 
@@ -58,10 +59,11 @@ namespace SWP391_ESMS.Repositories
             return _mapper.Map<CourseModel>(course);
         }
 
-        public async Task<Guid> GetCourseIdByName(string courseName)
+        public async Task<Guid?> GetCourseIdByNameAsync(string? courseName)
         {
             var course = await _dbContext.Courses.FirstOrDefaultAsync(c => c.CourseName == courseName);
-            return course!.CourseId;
+            if (course == null) { return null; }
+            return course.CourseId;
         }
 
         public async Task<Boolean> UpdateCourseAsync(CourseModel model)

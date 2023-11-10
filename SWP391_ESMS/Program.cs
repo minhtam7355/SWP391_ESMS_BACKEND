@@ -68,7 +68,7 @@ builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
-
+builder.Services.AddScoped<IConfigurationSettingRepository, ConfigurationSettingRepository>();
 
 var app = builder.Build();
 

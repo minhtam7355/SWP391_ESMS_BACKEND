@@ -92,10 +92,10 @@ CREATE TABLE ExamSessions (
 	IsPassed BIT,
 	IsPaid BIT,
     FOREIGN KEY (CourseID) REFERENCES Courses(CourseID),
+	FOREIGN KEY (ShiftID) REFERENCES ExamShifts(ShiftID),
     FOREIGN KEY (RoomID) REFERENCES ExamRooms(RoomID),
     FOREIGN KEY (TeacherID) REFERENCES Teachers(TeacherID),
-    FOREIGN KEY (StaffID) REFERENCES Staff(StaffID), 
-    FOREIGN KEY (ShiftID) REFERENCES ExamShifts(ShiftID) 
+    FOREIGN KEY (StaffID) REFERENCES Staff(StaffID)
 );
 
 CREATE TABLE ExamEnrollments (

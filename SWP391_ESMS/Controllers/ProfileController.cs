@@ -102,7 +102,7 @@ namespace SWP391_ESMS.Controllers
                 }
             }
 
-            throw new Exception("Failed to establish a link with the User");
+            throw new Exception("Authentication token is invalid or missing");
         }
     }
 }
