@@ -53,6 +53,39 @@ namespace SWP391_ESMS.Repositories
             return _mapper.Map<List<StudentModel>>(students);
         }
 
+        public async Task<Dictionary<string, double>> GetMajorDistributionAsync()
+        {
+            try
+            {
+                var totalStudents = await _dbContext.Students.CountAsync();
+
+                var majorDistributionTasks = _dbContext.Majors
+                    .ToDictionary(
+                        major => major.MajorName!,
+                        major => _dbContext.Students
+                            .Where(student => student.MajorId == major.MajorId)
+                            .CountAsync()
+                            .ContinueWith(task => totalStudents > 0
+                                ? Math.Round((double)task.Result / totalStudents * 100, 2)
+                                : 0.0)
+                    );
+
+                // Await all tasks before creating the final dictionary
+                var majorDistributionResults = await Task.WhenAll(majorDistributionTasks.Values);
+
+                // Combine keys and results into the final dictionary
+                var result = majorDistributionTasks.Keys
+                    .Zip(majorDistributionResults, (key, value) => new { key, value })
+                    .ToDictionary(pair => pair.key, pair => pair.value);
+
+                return result;
+            }
+            catch (Exception)
+            {
+                return new Dictionary<string, double>(); // Handle the error appropriately.
+            }
+        }
+
         public async Task<StudentModel> GetStudentByIdAsync(Guid id)
         {
             var student = await _dbContext.Students.FindAsync(id);

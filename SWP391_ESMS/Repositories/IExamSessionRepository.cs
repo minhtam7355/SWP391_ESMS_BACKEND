@@ -27,5 +27,11 @@ namespace SWP391_ESMS.Repositories
         public Task<List<ExamSessionModel>?> GetExamSessionsWithoutTeacherAsync();
 
         public Task<List<ExamSessionModel>?> GetExamSessionsByTeacherAsync(Guid teacherId);
+
+        public Task<List<decimal>> CalculateMonthlyEarningsAsync();
+
+        public Task<List<int>> GetNumberOfExamsHeldMonthlyAsync();
+
+        public Task<List<int>> GetNumberOfStudentsExaminedMonthlyAsync();
     }
 }

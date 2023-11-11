@@ -17,5 +17,7 @@ namespace SWP391_ESMS.Repositories
         public Task<List<StudentModel>?> GetStudentsByExamSessionAsync(Guid examSessionId);
 
         public Task<List<StudentModel>?> GetUnassignedStudentsAsync(Guid courseId);
+
+        public Task<Dictionary<string, double>> GetMajorDistributionAsync();
     }
 }

@@ -179,6 +179,67 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
+        public async Task<List<decimal>> CalculateMonthlyEarningsAsync()
+        {
+            try
+            {
+                // Get the Hourly Supervision Fee from configuration settings
+                var hourlySupervisionFeeSetting = await _dbContext.ConfigurationSettings
+                    .FirstOrDefaultAsync(c => c.SettingName == "Hourly Supervision Fee");
+
+                if (hourlySupervisionFeeSetting == null || hourlySupervisionFeeSetting.SettingValue == null)
+                {
+                    return new List<decimal>(); // Configuration setting not found or invalid.
+                }
+
+                decimal hourlySupervisionFee = hourlySupervisionFeeSetting.SettingValue ?? 0;
+
+                // Get the current year
+                int currentYear = DateTime.Now.Year;
+
+                // Calculate the monthly earnings based on all paid exam sessions (past and future) in the current year
+                var monthlyEarnings = Enumerable.Range(1, 12)
+                    .Select((int month) =>
+                    {
+                        // Calculate the start and end dates for each month
+                        DateTime startDate = new DateTime(currentYear, month, 1);
+                        DateTime endDate = startDate.AddMonths(1).AddDays(-1);
+
+                        // Calculate earnings for the month
+                        decimal monthlyEarningsForMonth = _dbContext.ExamSessions
+                            .Where(es => es.IsPaid == true && es.ExamDate >= startDate && es.ExamDate <= endDate)
+                            .Sum((Func<ExamSession, decimal>)(es =>
+                            {
+                                // Calculate hours based on ExamShift StartTime and EndTime
+                                TimeSpan? startTime = es.Shift?.StartTime;
+                                TimeSpan? endTime = es.Shift?.EndTime;
+
+                                // Check if both start and end times are not null
+                                if (startTime != null && endTime != null)
+                                {
+                                    // Calculate the duration in hours
+                                    double hours = (endTime.Value - startTime.Value).TotalHours;
+
+                                    // Multiply the hours by the hourly supervision fee to get earnings for this session
+                                    return (decimal)hours * hourlySupervisionFee;
+                                }
+
+                                // Return 0 if either start or end time is null
+                                return 0;
+                            }));
+
+                        return monthlyEarningsForMonth;
+                    })
+                    .ToList();
+
+                return monthlyEarnings;
+            }
+            catch (Exception)
+            {
+                return new List<decimal>(); // Error occurred during the calculation.
+            }
+        }
+
         public async Task<Boolean> DeleteExamSessionAsync(Guid id)
         {
             var deleteExamSession = await _dbContext.ExamSessions.FindAsync(id);
@@ -265,6 +326,63 @@ namespace SWP391_ESMS.Repositories
             catch (Exception)
             {
                 return null;
+            }
+        }
+
+        public async Task<List<int>> GetNumberOfExamsHeldMonthlyAsync()
+        {
+            try
+            {
+                int currentYear = DateTime.Now.Year;
+
+                var examsHeldMonthly = await Task.WhenAll(
+                    Enumerable.Range(1, 12)
+                    .Select(async month =>
+                    {
+                        DateTime startDate = new DateTime(currentYear, month, 1);
+                        DateTime endDate = startDate.AddMonths(1).AddDays(-1);
+
+                        int examsHeldForMonth = await _dbContext.ExamSessions
+                            .CountAsync(es => es.ExamDate >= startDate && es.ExamDate <= endDate);
+
+                        return examsHeldForMonth;
+                    }));
+
+                return examsHeldMonthly.ToList();
+            }
+            catch (Exception)
+            {
+                return new List<int>(); // Handle the error appropriately.
+            }
+        }
+
+        public async Task<List<int>> GetNumberOfStudentsExaminedMonthlyAsync()
+        {
+            try
+            {
+                int currentYear = DateTime.Now.Year;
+
+                var studentsExaminedMonthly = await Task.WhenAll(
+                    Enumerable.Range(1, 12)
+                    .Select(async month =>
+                    {
+                        DateTime startDate = new DateTime(currentYear, month, 1);
+                        DateTime endDate = startDate.AddMonths(1).AddDays(-1);
+
+                        int studentsExaminedForMonth = await _dbContext.ExamSessions
+                            .Where(es => es.IsPassed == true && es.ExamDate >= startDate && es.ExamDate <= endDate)
+                            .SelectMany(es => es.Students)
+                            .Distinct()
+                            .CountAsync();
+
+                        return studentsExaminedForMonth;
+                    }));
+
+                return studentsExaminedMonthly.ToList();
+            }
+            catch (Exception)
+            {
+                return new List<int>(); // Handle the error appropriately.
             }
         }
 
