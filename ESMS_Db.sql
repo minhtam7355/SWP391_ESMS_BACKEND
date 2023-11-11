@@ -24,7 +24,7 @@ CREATE TABLE Students (
     HomeAddress VARCHAR(255),
     DateOfBirth DATE,
     Gender VARCHAR(50),
-    ProfilePicture NVARCHAR(255),
+    ProfilePicture NVARCHAR(MAX),
 	MajorID UNIQUEIDENTIFIER,
     FOREIGN KEY (MajorID) REFERENCES Majors(MajorID)
 );
@@ -47,7 +47,7 @@ CREATE TABLE Staff (
     HomeAddress VARCHAR(255),
     DateOfBirth DATE,
     Gender VARCHAR(50),
-    ProfilePicture NVARCHAR(255),
+    ProfilePicture NVARCHAR(MAX),
 	StaffRole VARCHAR(50)
 );
 
@@ -61,7 +61,7 @@ CREATE TABLE Teachers (
     HomeAddress VARCHAR(255),
     DateOfBirth DATE,
     Gender VARCHAR(50),
-    ProfilePicture NVARCHAR(255),
+    ProfilePicture NVARCHAR(MAX),
 	MajorID UNIQUEIDENTIFIER,
     FOREIGN KEY (MajorID) REFERENCES Majors(MajorID)
 );

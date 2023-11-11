@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using SWP391_ESMS.Data;
 using SWP391_ESMS.Models.Domain;
 using SWP391_ESMS.Models.ViewModels;
-using System.Data;
 
 namespace SWP391_ESMS.Repositories
 {
@@ -64,6 +63,33 @@ namespace SWP391_ESMS.Repositories
             }
 
             return null;
+        }
+
+        public async Task<Boolean> SaveProfilePictureAsync(Guid id, string role, string base64Image)
+        {
+            if (role == "Student")
+            {
+                var student = await _dbContext.Students.FirstOrDefaultAsync(student => student.StudentId == id);
+                student!.ProfilePicture = base64Image;
+                await _dbContext.SaveChangesAsync();
+                return true;
+            }
+            if (role == "Teacher")
+            {
+                var teacher = await _dbContext.Teachers.FirstOrDefaultAsync(teacher => teacher.TeacherId == id);
+                teacher!.ProfilePicture = base64Image;
+                await _dbContext.SaveChangesAsync();
+                return true;
+            }
+            if (role == "Admin" || role == "Testing Admin" || role == "Testing Staff")
+            {
+                var staff = await _dbContext.Staff.FirstOrDefaultAsync(staff => staff.StaffId == id);
+                staff!.ProfilePicture = base64Image;
+                await _dbContext.SaveChangesAsync();
+                return true;
+            }
+
+            return false;
         }
 
         public async Task<Boolean> UpdateUserProfileAsync(UserInfo model)

@@ -83,6 +83,46 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
+        [HttpPost("uploadprofilepicture")]
+        public async Task<IActionResult> UploadProfilePicture(IFormFile picture)
+        {
+            if (picture != null && picture.Length > 0)
+            {
+                if (picture.Length > 200 * 1024) // Check if the file size exceeds 200 KB
+                {
+                    // File size is too large, return a warning
+                    return BadRequest("The profile picture exceeds the maximum allowed size");
+                }
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    await picture.CopyToAsync(memoryStream);
+                    var imageBytes = memoryStream.ToArray();
+
+                    // Convert the image bytes to a base64 string
+                    var base64String = Convert.ToBase64String(imageBytes);
+
+                    // Save the base64 string to the database
+                    var user = await GetCurrentUserProfileAsync();
+                    if (user == null) { return BadRequest("Failed to establish a link with the User"); }
+                    bool result = await _profileRepo.SaveProfilePictureAsync(user.UserId, user.Role!, base64String);
+
+                    if (result)
+                    {
+                        return Ok("Successfully uploaded the profile picture");
+                    }
+                    else
+                    {
+                        return BadRequest("Failed to save the profile picture");
+                    }
+                }
+            }
+
+            // No file was provided, return an error
+            return BadRequest("No profile picture file was uploaded");
+        }
+
+
         // Helper method to get the current user's profile
         [NonAction]
         private async Task<UserInfo?> GetCurrentUserProfileAsync()
