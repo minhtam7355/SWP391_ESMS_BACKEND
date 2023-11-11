@@ -74,6 +74,13 @@ namespace SWP391_ESMS.Controllers
                     return BadRequest("Authentication token is invalid or missing");
                 }
 
+                DateTime minAllowedDate = await GetMinAllowedDateAsync();
+
+                if (model.ExamDate < minAllowedDate)
+                {
+                    return BadRequest($"The exam date '{String.Format("{0:dd/MM/yyyy}", model.ExamDate)}' is not allowed. Exams can be scheduled starting from '{minAllowedDate.ToString("dd/MM/yyyy")}'");
+                }
+
                 bool result = await _examRepo.AddExamSessionAsync(model);
 
                 if (result)
@@ -96,6 +103,13 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
+                DateTime minAllowedDate = await GetMinAllowedDateAsync();
+
+                if (model.ExamDate < minAllowedDate)
+                {
+                    return BadRequest($"The exam date '{String.Format("{0:dd/MM/yyyy}", model.ExamDate)}' is not allowed. Exams can be scheduled starting from '{minAllowedDate.ToString("dd/MM/yyyy")}'");
+                }
+
                 bool result = await _examRepo.UpdateExamSessionAsync(model);
 
                 if (result)
@@ -283,54 +297,13 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        // Helper
-        [NonAction]
-        private async Task<DataTable> GetAllExamSessionsData()
-        {
-            DataTable dt = new DataTable();
-            dt.TableName = "ExamSessionsData";
-            dt.Columns.Add("ExamSessionId", typeof(Guid));
-            dt.Columns.Add("CourseName", typeof(string));
-            dt.Columns.Add("ExamFormat", typeof(string));
-            dt.Columns.Add("ExamDate", typeof(string));
-            dt.Columns.Add("ShiftName", typeof(string));
-            dt.Columns.Add("StartTime", typeof(TimeSpan));
-            dt.Columns.Add("EndTime", typeof(TimeSpan));
-            dt.Columns.Add("RoomName", typeof(string));
-            dt.Columns.Add("StudentsEnrolled", typeof(int));
-            dt.Columns.Add("TeacherName", typeof(string));
-            dt.Columns.Add("StaffName", typeof(string));
-            dt.Columns.Add("IsPassed", typeof(bool));
-            dt.Columns.Add("IsPaid", typeof(bool));
-
-            var examSessions = await _examRepo.GetAllExamSessionsAsync();
-            if (examSessions.Count > 0)
-            {
-                foreach (var item in examSessions)
-                {
-                    string formattedExamDate = String.Format("{0:dd/MM/yyyy}", item.ExamDate);
-                    dt.Rows.Add(item.ExamSessionId, item.CourseName, item.ExamFormat, formattedExamDate, item.ShiftName, item.StartTime, item.EndTime, item.RoomName, item.StudentsEnrolled, item.TeacherName, item.StaffName, item.IsPassed, item.IsPaid);
-                }
-            }
-
-            dt.DefaultView.Sort = "ExamDate DESC, EndTime ASC";
-            return dt.DefaultView.ToTable();
-        }
-
         [HttpPost("uploadexcel")]
         public async Task<IActionResult> UploadExcel(IFormFile file)
         {
-            // Initialize user ID and message
+            // Initialize user ID, message, and minimum allowed date
             Guid userId = Guid.Empty;
             string msg = "";
-
-            // Retrieve the scheduling period setting
-            var schedulingPeriodSetting = await _settingRepo.GetSettingByNameAsync("Scheduling Period");
-            int schedulingPeriod = Convert.ToInt32(schedulingPeriodSetting!.SettingValue);
-
-            // Calculate the minimum allowed date
-            DateTime currentDate = DateTime.Now.Date;
-            DateTime minAllowedDate = currentDate.AddDays(schedulingPeriod);
+            DateTime minAllowedDate = await GetMinAllowedDateAsync();
 
             // Extract the user's authentication token
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
@@ -405,19 +378,19 @@ namespace SWP391_ESMS.Controllers
                                 // Validate exam format
                                 if (examSession.ExamFormat != "Theory Exam" && examSession.ExamFormat != "Practical Exam")
                                 {
-                                    return BadRequest($"Invalid exam format: '{examSession.ExamFormat}'. Supported formats are 'Theory Exam' and 'Practical Exam'.");
+                                    return BadRequest($"Invalid exam format: '{examSession.ExamFormat}'. Supported formats are 'Theory Exam' and 'Practical Exam'");
                                 }
 
                                 // Validate and parse the exam date
                                 if (!DateTime.TryParseExact(reader.GetValue(2).ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime examDate))
                                 {
-                                    return BadRequest($"Invalid date format: '{reader.GetValue(2)}'. The date should be in the format 'DD/MM/YYYY'.");
+                                    return BadRequest($"Invalid date format: '{reader.GetValue(2)}'. The date should be in the format 'DD/MM/YYYY'");
                                 }
 
                                 // Check if the exam date is within the allowed scheduling period
                                 if (examDate < minAllowedDate)
                                 {
-                                    return BadRequest($"The exam date '{examDate.ToString("dd/MM/yyyy")}' is not allowed. Exams can be scheduled starting from '{minAllowedDate.ToString("dd/MM/yyyy")}'.");
+                                    return BadRequest($"The exam date '{examDate.ToString("dd/MM/yyyy")}' is not allowed. Exams can be scheduled starting from '{minAllowedDate.ToString("dd/MM/yyyy")}'");
                                 }
 
                                 examSession.ExamDate = examDate;
@@ -429,7 +402,10 @@ namespace SWP391_ESMS.Controllers
                         } while (reader.NextResult());
                     }
                 }
-
+                if (examSessions.Count == 0)
+                {
+                    return BadRequest("The uploaded file is in the wrong format. Please ensure that the first row is a header, and subsequent rows represent data. Each row should contain three properties of the exam session data: 1) Course 2) Exam Format 3) Exam Date.");
+                }
                 // Process the validated exam sessions
                 foreach (var examSession in examSessions)
                 {
@@ -452,6 +428,54 @@ namespace SWP391_ESMS.Controllers
 
             // Return a BadRequest response for an empty file
             return BadRequest("The uploaded file is empty");
+        }
+
+        // Helper
+        [NonAction]
+        private async Task<DataTable> GetAllExamSessionsData()
+        {
+            DataTable dt = new DataTable();
+            dt.TableName = "ExamSessionsData";
+            dt.Columns.Add("ExamSessionId", typeof(Guid));
+            dt.Columns.Add("CourseName", typeof(string));
+            dt.Columns.Add("ExamFormat", typeof(string));
+            dt.Columns.Add("ExamDate", typeof(string));
+            dt.Columns.Add("ShiftName", typeof(string));
+            dt.Columns.Add("StartTime", typeof(TimeSpan));
+            dt.Columns.Add("EndTime", typeof(TimeSpan));
+            dt.Columns.Add("RoomName", typeof(string));
+            dt.Columns.Add("StudentsEnrolled", typeof(int));
+            dt.Columns.Add("TeacherName", typeof(string));
+            dt.Columns.Add("StaffName", typeof(string));
+            dt.Columns.Add("IsPassed", typeof(bool));
+            dt.Columns.Add("IsPaid", typeof(bool));
+
+            var examSessions = await _examRepo.GetAllExamSessionsAsync();
+            if (examSessions.Count > 0)
+            {
+                foreach (var item in examSessions)
+                {
+                    string formattedExamDate = String.Format("{0:dd/MM/yyyy}", item.ExamDate);
+                    dt.Rows.Add(item.ExamSessionId, item.CourseName, item.ExamFormat, formattedExamDate, item.ShiftName, item.StartTime, item.EndTime, item.RoomName, item.StudentsEnrolled, item.TeacherName, item.StaffName, item.IsPassed, item.IsPaid);
+                }
+            }
+
+            dt.DefaultView.Sort = "ExamDate DESC, EndTime ASC";
+            return dt.DefaultView.ToTable();
+        }
+
+        [NonAction]
+        private async Task<DateTime> GetMinAllowedDateAsync()
+        {
+            // Retrieve the scheduling period setting
+            var schedulingPeriodSetting = await _settingRepo.GetSettingByNameAsync("Scheduling Period");
+            int schedulingPeriod = Convert.ToInt32(schedulingPeriodSetting!.SettingValue);
+
+            // Calculate the minimum allowed date
+            DateTime currentDate = DateTime.Now.Date;
+            DateTime minAllowedDate = currentDate.AddDays(schedulingPeriod);
+
+            return minAllowedDate;
         }
     }
 }

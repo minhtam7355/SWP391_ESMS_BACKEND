@@ -15,8 +15,9 @@ namespace SWP391_ESMS.Helpers
                 .ReverseMap();
 
             CreateMap<Course, CourseModel>()
-                .ForMember(dest => dest.MajorName, opt => opt.MapFrom(src => src.Major!.MajorName))
-                .ReverseMap();
+                .ForMember(dest => dest.MajorName, opt => opt.MapFrom(src => src.Major!.MajorName));
+
+            CreateMap<CourseModel, Course>();
 
             CreateMap<ExamRoom, ExamRoomModel>()
                 .ReverseMap();
@@ -39,8 +40,9 @@ namespace SWP391_ESMS.Helpers
                 .ForMember(dest => dest.StaffId, opt => opt.MapFrom(src => src.StaffId))
                 .ForMember(dest => dest.StaffName, opt => opt.MapFrom(src => src.Staff!.FullName))
                 .ForMember(dest => dest.IsPassed, opt => opt.MapFrom(src => src.IsPassed))
-                .ForMember(dest => dest.IsPaid, opt => opt.MapFrom(src => src.IsPaid))
-                .ReverseMap();
+                .ForMember(dest => dest.IsPaid, opt => opt.MapFrom(src => src.IsPaid));
+
+            CreateMap<ExamSessionModel, ExamSession>();
 
             CreateMap<ExamShift, ExamShiftModel>()
                 .ReverseMap();
@@ -49,12 +51,14 @@ namespace SWP391_ESMS.Helpers
                 .ReverseMap();
 
             CreateMap<Student, StudentModel>()
-                .ForMember(dest => dest.MajorName, opt => opt.MapFrom(src => src.Major!.MajorName))
-                .ReverseMap();
+                .ForMember(dest => dest.MajorName, opt => opt.MapFrom(src => src.Major!.MajorName));
+
+            CreateMap<StudentModel, Student>();
 
             CreateMap<Teacher, TeacherModel>()
-                .ForMember(dest => dest.MajorName, opt => opt.MapFrom(src => src.Major!.MajorName))
-                .ReverseMap();
+                .ForMember(dest => dest.MajorName, opt => opt.MapFrom(src => src.Major!.MajorName));
+
+            CreateMap<TeacherModel, Teacher>();
 
             CreateMap<Staff, StaffModel>()
                 .ReverseMap();

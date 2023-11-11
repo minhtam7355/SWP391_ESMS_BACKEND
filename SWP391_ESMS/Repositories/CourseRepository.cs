@@ -23,7 +23,6 @@ namespace SWP391_ESMS.Repositories
             {
                 var newCourse = _mapper.Map<Course>(model);
                 newCourse.CourseId = Guid.NewGuid();
-                newCourse.Major = await _dbContext.Majors.FindAsync(newCourse.MajorId);
                 await _dbContext.Courses.AddAsync(newCourse);
                 await _dbContext.SaveChangesAsync();
 

@@ -326,29 +326,11 @@ namespace SWP391_ESMS.Repositories
         public async Task<Boolean> UpdateExamSessionAsync(ExamSessionModel model)
         {
             var existingExamSession = await _dbContext.ExamSessions.FindAsync(model.ExamSessionId);
-            var students = existingExamSession!.Students;
-            // Retrieve the scheduling period setting
-            var schedulingPeriodSetting = await _dbContext.ConfigurationSettings.FirstOrDefaultAsync(c => c.SettingName == "Scheduling Period");
-            int schedulingPeriod = Convert.ToInt32(schedulingPeriodSetting!.SettingValue);
-
-            // Calculate the minimum allowed date
-            DateTime currentDate = DateTime.Now.Date;
-            DateTime minAllowedDate = currentDate.AddDays(schedulingPeriod);
 
             if (existingExamSession != null)
             {
                 _mapper.Map(model, existingExamSession);
-                existingExamSession.Course = await _dbContext.Courses.FindAsync(model.CourseId);
-                existingExamSession.Shift = await _dbContext.ExamShifts.FindAsync(model.ShiftId);
-                existingExamSession.Room = await _dbContext.ExamRooms.FindAsync(model.RoomId);
-                existingExamSession.Teacher = await _dbContext.Teachers.FindAsync(model.TeacherId);
-                existingExamSession.Staff = await _dbContext.Staff.FindAsync(model.StaffId);
-                existingExamSession.Students = students;
 
-                if (existingExamSession.ExamDate < minAllowedDate)
-                {
-                    return false;
-                }
                 if (existingExamSession.ExamDate < DateTime.Now.Date)
                 {
                     existingExamSession.IsPassed = true; // Update isPassed to true if the exam date is in the past.
