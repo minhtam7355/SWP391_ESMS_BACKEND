@@ -30,5 +30,8 @@
 
         public string? MajorName { get; set; }
 
+        public decimal? CurrentWage { get; set; }
+
+        public decimal? TotalEarnings { get; set; }
     }
 }

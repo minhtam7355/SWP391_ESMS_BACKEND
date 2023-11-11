@@ -27,7 +27,13 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
-                return Ok(await _teacherRepo.GetAllTeachersAsync());
+                var teachers = await _teacherRepo.GetAllTeachersAsync();
+                foreach (var teacher in teachers)
+                {
+                    teacher.CurrentWage = await _teacherRepo.CalculateCurrentWagesAsync(teacher.TeacherId);
+                    teacher.TotalEarnings = await _teacherRepo.CalculateTotalEarningsAsync(teacher.TeacherId);
+                }
+                return Ok(teachers);
             }
             catch (Exception ex)
             {
@@ -40,7 +46,10 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
-                return Ok(await _teacherRepo.GetTeacherByIdAsync(id));
+                var teacher = await _teacherRepo.GetTeacherByIdAsync(id);
+                teacher.CurrentWage = await _teacherRepo.CalculateCurrentWagesAsync(id);
+                teacher.TotalEarnings = await _teacherRepo.CalculateTotalEarningsAsync(id);
+                return Ok(teacher);
             }
             catch (Exception ex)
             {
