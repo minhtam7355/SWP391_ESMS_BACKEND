@@ -88,7 +88,7 @@ namespace SWP391_ESMS.Controllers
         {
             if (picture != null && picture.Length > 0)
             {
-                if (picture.Length > 200 * 1024) // Check if the file size exceeds 200 KB
+                if (picture.Length > 1024 * 1024) // Check if the file size exceeds 1MB
                 {
                     // File size is too large, return a warning
                     return BadRequest("The profile picture exceeds the maximum allowed size");
