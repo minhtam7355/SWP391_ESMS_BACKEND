@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using SWP391_ESMS.Models.Domain;
 using SWP391_ESMS.Models.ViewModels;
-using SWP391_ESMS.Repositories;
 
 namespace SWP391_ESMS.Helpers
 {

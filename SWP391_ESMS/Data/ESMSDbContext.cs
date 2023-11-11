@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SWP391_ESMS.Models.Domain;
 
 namespace SWP391_ESMS.Data;

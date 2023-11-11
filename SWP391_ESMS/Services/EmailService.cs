@@ -1,7 +1,5 @@
-﻿using AutoMapper.Internal;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using MimeKit;
-using MailKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using SWP391_ESMS.Models.ViewModels;
