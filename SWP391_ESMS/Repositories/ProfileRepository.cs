@@ -65,6 +65,26 @@ namespace SWP391_ESMS.Repositories
             return null;
         }
 
+        public async Task<bool> IsUsernameAvailableAsync(string username)
+        {
+            bool isUsernameAvailable =
+                await _dbContext.Students.AllAsync(student => student.Username != username) &&
+                await _dbContext.Teachers.AllAsync(teacher => teacher.Username != username) &&
+                await _dbContext.Staff.AllAsync(staff => staff.Username != username);
+
+            return isUsernameAvailable;
+        }
+
+        public async Task<bool> IsEmailAvailableAsync(string email)
+        {
+            bool isEmailAvailable =
+                await _dbContext.Students.AllAsync(student => student.Email != email) &&
+                await _dbContext.Teachers.AllAsync(teacher => teacher.Email != email) &&
+                await _dbContext.Staff.AllAsync(staff => staff.Email != email);
+
+            return isEmailAvailable;
+        }
+
         public async Task<Boolean> SaveProfilePictureAsync(Guid id, string role, string base64Image)
         {
             if (role == "Student")

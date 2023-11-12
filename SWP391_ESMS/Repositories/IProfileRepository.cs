@@ -11,5 +11,9 @@ namespace SWP391_ESMS.Repositories
         public Task<Boolean> ChangePasswordAsync(ChangePasswordModel model, Guid id, string role);
 
         public Task<Boolean> SaveProfilePictureAsync(Guid id, string role, string base64Image);
+
+        public Task<bool> IsUsernameAvailableAsync(string username);
+
+        public Task<bool> IsEmailAvailableAsync(string email);
     }
 }

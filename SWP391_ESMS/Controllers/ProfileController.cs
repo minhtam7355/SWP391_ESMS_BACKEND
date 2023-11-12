@@ -37,6 +37,27 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
+                var currentUser = await GetCurrentUserProfileAsync();
+                if (currentUser == null) { return BadRequest("Failed to establish a link with the User"); }
+                if (currentUser.Username != user.Username)
+                {
+                    bool isUsernameAvailable = await _profileRepo.IsUsernameAvailableAsync(user.Username!);
+
+                    if (!isUsernameAvailable)
+                    {
+                        return BadRequest("Username is already in use");
+                    }
+                }
+                if (currentUser.Email != user.Email)
+                {
+                    bool isEmailAvailable = await _profileRepo.IsEmailAvailableAsync(user.Email!);
+
+                    if (!isEmailAvailable)
+                    {
+                        return BadRequest("Email is already in use");
+                    }
+                }
+
                 bool result = await _profileRepo.UpdateUserProfileAsync(user);
 
                 if (result)
