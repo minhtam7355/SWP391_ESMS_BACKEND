@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
@@ -11,10 +12,12 @@ namespace SWP391_ESMS.Controllers
     public class StaffController : ControllerBase
     {
         private readonly IStaffRepository _staffRepo;
+        private readonly IProfileRepository _profileRepo;
 
-        public StaffController(IStaffRepository staffRepo)
+        public StaffController(IStaffRepository staffRepo, IProfileRepository profileRepo)
         {
             _staffRepo = staffRepo;
+            _profileRepo = profileRepo;
         }
 
         [HttpGet("getall")]
@@ -48,6 +51,20 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
+                bool isUsernameAvailable = await _profileRepo.IsUsernameAvailableAsync(model.Username!);
+
+                if (!isUsernameAvailable)
+                {
+                    return BadRequest("Username is already in use");
+                }
+
+                bool isEmailAvailable = await _profileRepo.IsEmailAvailableAsync(model.Email!);
+
+                if (!isEmailAvailable)
+                {
+                    return BadRequest("Email is already in use");
+                }
+
                 if (model.Password != model.ConfirmPassword) return BadRequest("Password and confirm password must be the same");
                 bool result = await _staffRepo.AddStaffAsync(model);
 
@@ -71,6 +88,26 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
+                var currentModel = await _staffRepo.GetStaffByIdAsync(model.StaffId);
+                if (currentModel.Username != model.Username)
+                {
+                    bool isUsernameAvailable = await _profileRepo.IsUsernameAvailableAsync(model.Username!);
+
+                    if (!isUsernameAvailable)
+                    {
+                        return BadRequest("Username is already in use");
+                    }
+                }
+                if (currentModel.Email != model.Email)
+                {
+                    bool isEmailAvailable = await _profileRepo.IsEmailAvailableAsync(model.Email!);
+
+                    if (!isEmailAvailable)
+                    {
+                        return BadRequest("Email is already in use");
+                    }
+                }
+
                 bool result = await _staffRepo.UpdateStaffAsync(model);
 
                 if (result)

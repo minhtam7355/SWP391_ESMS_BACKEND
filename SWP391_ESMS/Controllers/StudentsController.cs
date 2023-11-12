@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
@@ -14,12 +16,14 @@ namespace SWP391_ESMS.Controllers
         private readonly IStudentRepository _studentRepo;
         private readonly IExamSessionRepository _examRepo;
         private readonly IEmailService _emailService;
+        private readonly IProfileRepository _profileRepo;
 
-        public StudentsController(IStudentRepository studentRepo, IExamSessionRepository examRepo, IEmailService emailService)
+        public StudentsController(IStudentRepository studentRepo, IExamSessionRepository examRepo, IEmailService emailService, IProfileRepository profileRepo)
         {
             _studentRepo = studentRepo;
             _examRepo = examRepo;
             _emailService = emailService;
+            _profileRepo = profileRepo;
         }
 
         [HttpGet("getall")]
@@ -53,6 +57,20 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
+                bool isUsernameAvailable = await _profileRepo.IsUsernameAvailableAsync(model.Username!);
+
+                if (!isUsernameAvailable)
+                {
+                    return BadRequest("Username is already in use");
+                }
+
+                bool isEmailAvailable = await _profileRepo.IsEmailAvailableAsync(model.Email!);
+
+                if (!isEmailAvailable)
+                {
+                    return BadRequest("Email is already in use");
+                }
+
                 if (model.Password != model.ConfirmPassword) return BadRequest("Password and confirm password must be the same");
                 bool result = await _studentRepo.AddStudentAsync(model);
 
@@ -76,6 +94,26 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
+                var currentModel = await _studentRepo.GetStudentByIdAsync(model.StudentId);
+                if (currentModel.Username != model.Username)
+                {
+                    bool isUsernameAvailable = await _profileRepo.IsUsernameAvailableAsync(model.Username!);
+
+                    if (!isUsernameAvailable)
+                    {
+                        return BadRequest("Username is already in use");
+                    }
+                }
+                if (currentModel.Email != model.Email)
+                {
+                    bool isEmailAvailable = await _profileRepo.IsEmailAvailableAsync(model.Email!);
+
+                    if (!isEmailAvailable)
+                    {
+                        return BadRequest("Email is already in use");
+                    }
+                }
+
                 bool result = await _studentRepo.UpdateStudentAsync(model);
 
                 if (result)
