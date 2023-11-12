@@ -135,6 +135,12 @@ namespace SWP391_ESMS.Repositories
                     return false; // Exam session or student not found.
                 }
 
+                // Check if the ExamDate is today.
+                if (examSession.ExamDate == DateTime.Today)
+                {
+                    return false; // Do not allow to add students on the day of the exam.
+                }
+
                 // Check if the student is not already enrolled in the exam session.
                 if (!examSession.Students.Contains(student))
                 {
@@ -402,6 +408,12 @@ namespace SWP391_ESMS.Repositories
                 if (examSession == null || student == null)
                 {
                     return false; // Exam session or student not found.
+                }
+
+                // Check if the ExamDate is today.
+                if (examSession.ExamDate == DateTime.Today)
+                {
+                    return false; // Do not allow to remove students on the day of the exam.
                 }
 
                 // Check if the student is enrolled in the exam session.
