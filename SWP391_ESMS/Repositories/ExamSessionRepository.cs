@@ -169,6 +169,12 @@ namespace SWP391_ESMS.Repositories
                     return false; // Exam session or teacher not found.
                 }
 
+                // Check if the ExamDate is today.
+                if (examSession.ExamDate == DateTime.Today)
+                {
+                    return false; // Do not allow to add teacher on the day of the exam.
+                }
+
                 // Check if the exam session already has a teacher assigned.
                 if (examSession.TeacherId != null)
                 {
@@ -443,6 +449,28 @@ namespace SWP391_ESMS.Repositories
                     return false; // Exam session not found.
                 }
 
+                // Get the Cancellation Notice setting from configuration settings
+                var cancellationNoticeSetting = await _dbContext.ConfigurationSettings
+                    .FirstOrDefaultAsync(c => c.SettingName == "Cancellation Notice");
+
+                if (cancellationNoticeSetting == null || cancellationNoticeSetting.SettingValue == null)
+                {
+                    return false; // Cancellation Notice setting not found or invalid.
+                }
+
+                // Convert Cancellation Notice setting to integer
+                int cancellationNotice = Convert.ToInt32(cancellationNoticeSetting.SettingValue);
+
+                // Calculate the minimum allowed date for cancelling the appointment
+                DateTime currentDate = DateTime.Now.Date;
+                DateTime minAllowedDate = currentDate.AddDays(cancellationNotice);
+
+                // Check if the exam session date is earlier than the minimum allowed date
+                if (examSession.ExamDate < minAllowedDate)
+                {
+                    return false; // Cancellation is not allowed as the minimum date has passed.
+                }
+
                 // Check if the exam session has a teacher assigned.
                 if (examSession.TeacherId == null)
                 {
@@ -465,6 +493,12 @@ namespace SWP391_ESMS.Repositories
 
             if (existingExamSession != null)
             {
+                // Check if the ExamDate is today.
+                if (existingExamSession.ExamDate == DateTime.Today)
+                {
+                    return false; // Do not allow to update exam session on the day of the exam.
+                }
+
                 _mapper.Map(model, existingExamSession);
 
                 if (existingExamSession.ExamDate < DateTime.Now.Date)
