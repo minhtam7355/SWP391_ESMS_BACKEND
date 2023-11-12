@@ -335,20 +335,23 @@ namespace SWP391_ESMS.Repositories
             {
                 int currentYear = DateTime.Now.Year;
 
-                var examsHeldMonthly = await Task.WhenAll(
-                    Enumerable.Range(1, 12)
-                    .Select(async month =>
-                    {
-                        DateTime startDate = new DateTime(currentYear, month, 1);
-                        DateTime endDate = startDate.AddMonths(1).AddDays(-1);
+                // Materialize the months to avoid capturing the DbContext in the lambda expression
+                var months = Enumerable.Range(1, 12).ToList();
 
-                        int examsHeldForMonth = await _dbContext.ExamSessions
-                            .CountAsync(es => es.ExamDate >= startDate && es.ExamDate <= endDate);
+                var examsHeldMonthly = new List<int>();
 
-                        return examsHeldForMonth;
-                    }));
+                foreach (var month in months)
+                {
+                    DateTime startDate = new DateTime(currentYear, month, 1);
+                    DateTime endDate = startDate.AddMonths(1).AddDays(-1);
 
-                return examsHeldMonthly.ToList();
+                    int examsHeldForMonth = await _dbContext.ExamSessions
+                        .CountAsync(es => es.ExamDate >= startDate && es.ExamDate <= endDate);
+
+                    examsHeldMonthly.Add(examsHeldForMonth);
+                }
+
+                return examsHeldMonthly;
             }
             catch (Exception)
             {
@@ -362,23 +365,26 @@ namespace SWP391_ESMS.Repositories
             {
                 int currentYear = DateTime.Now.Year;
 
-                var studentsExaminedMonthly = await Task.WhenAll(
-                    Enumerable.Range(1, 12)
-                    .Select(async month =>
-                    {
-                        DateTime startDate = new DateTime(currentYear, month, 1);
-                        DateTime endDate = startDate.AddMonths(1).AddDays(-1);
+                // Materialize the months to avoid capturing the DbContext in the lambda expression
+                var months = Enumerable.Range(1, 12).ToList();
 
-                        int studentsExaminedForMonth = await _dbContext.ExamSessions
-                            .Where(es => es.IsPassed == true && es.ExamDate >= startDate && es.ExamDate <= endDate)
-                            .SelectMany(es => es.Students)
-                            .Distinct()
-                            .CountAsync();
+                var studentsExaminedMonthly = new List<int>();
 
-                        return studentsExaminedForMonth;
-                    }));
+                foreach (var month in months)
+                {
+                    DateTime startDate = new DateTime(currentYear, month, 1);
+                    DateTime endDate = startDate.AddMonths(1).AddDays(-1);
 
-                return studentsExaminedMonthly.ToList();
+                    int studentsExaminedForMonth = await _dbContext.ExamSessions
+                        .Where(es => es.IsPassed == true && es.ExamDate >= startDate && es.ExamDate <= endDate)
+                        .SelectMany(es => es.Students)
+                        .Distinct()
+                        .CountAsync();
+
+                    studentsExaminedMonthly.Add(studentsExaminedForMonth);
+                }
+
+                return studentsExaminedMonthly;
             }
             catch (Exception)
             {

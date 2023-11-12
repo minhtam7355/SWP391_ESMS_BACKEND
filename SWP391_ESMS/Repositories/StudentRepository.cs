@@ -59,26 +59,23 @@ namespace SWP391_ESMS.Repositories
             {
                 var totalStudents = await _dbContext.Students.CountAsync();
 
-                var majorDistributionTasks = _dbContext.Majors
+                // Materialize the majors and students in each major
+                var majors = await _dbContext.Majors.ToListAsync();
+
+                var majorDistributionTasks = majors
                     .ToDictionary(
                         major => major.MajorName!,
-                        major => _dbContext.Students
-                            .Where(student => student.MajorId == major.MajorId)
-                            .CountAsync()
-                            .ContinueWith(task => totalStudents > 0
-                                ? Math.Round((double)task.Result / totalStudents * 100, 2)
-                                : 0.0)
-                    );
+                        major => {
+                            var studentsInMajor = _dbContext.Students
+                                .Where(student => student.MajorId == major.MajorId)
+                                .ToList();
 
-                // Await all tasks before creating the final dictionary
-                var majorDistributionResults = await Task.WhenAll(majorDistributionTasks.Values);
+                            return totalStudents > 0
+                                ? Math.Round((double)studentsInMajor.Count / totalStudents * 100, 2)
+                                : 0.0;
+                        });
 
-                // Combine keys and results into the final dictionary
-                var result = majorDistributionTasks.Keys
-                    .Zip(majorDistributionResults, (key, value) => new { key, value })
-                    .ToDictionary(pair => pair.key, pair => pair.value);
-
-                return result;
+                return majorDistributionTasks;
             }
             catch (Exception)
             {
