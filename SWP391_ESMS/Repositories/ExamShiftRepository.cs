@@ -21,6 +21,11 @@ namespace SWP391_ESMS.Repositories
         {
             try
             {
+                var existingExamShiftName = await _dbContext.ExamShifts.Select(s => s.ShiftName).FirstOrDefaultAsync(s => s == model.ShiftName);
+                if (existingExamShiftName != null)
+                {
+                    return false;
+                }
                 var newExamShift = _mapper.Map<ExamShift>(model);
                 newExamShift.ShiftId = Guid.NewGuid();
                 await _dbContext.ExamShifts.AddAsync(newExamShift);
@@ -70,6 +75,14 @@ namespace SWP391_ESMS.Repositories
 
             if (existingExamShift != null)
             {
+                if (model.ShiftName != existingExamShift.ShiftName)
+                {
+                    var existingExamShiftName = await _dbContext.ExamShifts.Select(s => s.ShiftName).FirstOrDefaultAsync(s => s == model.ShiftName);
+                    if (existingExamShiftName != null)
+                    {
+                        return false;
+                    }
+                }
                 _mapper.Map(model, existingExamShift);
                 await _dbContext.SaveChangesAsync();
                 return true;

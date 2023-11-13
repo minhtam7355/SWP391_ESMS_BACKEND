@@ -21,6 +21,11 @@ namespace SWP391_ESMS.Repositories
         {
             try
             {
+                var existingMajorName = await _dbContext.Majors.Select(m => m.MajorName).FirstOrDefaultAsync(m => m == model.MajorName);
+                if (existingMajorName != null)
+                {
+                    return false;
+                }
                 var newMajor = _mapper.Map<Major>(model);
                 newMajor.MajorId = Guid.NewGuid();
                 await _dbContext.Majors.AddAsync(newMajor);
@@ -71,6 +76,14 @@ namespace SWP391_ESMS.Repositories
 
             if (existingMajor != null)
             {
+                if (model.MajorName != existingMajor.MajorName)
+                {
+                    var existingMajorName = await _dbContext.Majors.Select(m => m.MajorName).FirstOrDefaultAsync(m => m == model.MajorName);
+                    if (existingMajorName != null)
+                    {
+                        return false;
+                    }
+                }
                 _mapper.Map(model, existingMajor);
                 await _dbContext.SaveChangesAsync();
                 return true;

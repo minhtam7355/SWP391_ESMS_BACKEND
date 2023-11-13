@@ -21,6 +21,11 @@ namespace SWP391_ESMS.Repositories
         {
             try
             {
+                var existingRoomName = await _dbContext.ExamRooms.Select(r => r.RoomName).FirstOrDefaultAsync(r => r == model.RoomName);
+                if (existingRoomName != null)
+                {
+                    return false;
+                }
                 var newRoom = _mapper.Map<ExamRoom>(model);
                 newRoom.RoomId = Guid.NewGuid();
                 await _dbContext.ExamRooms.AddAsync(newRoom);
@@ -70,6 +75,14 @@ namespace SWP391_ESMS.Repositories
 
             if (existingRoom != null)
             {
+                if (model.RoomName != existingRoom.RoomName)
+                {
+                    var existingRoomName = await _dbContext.ExamRooms.Select(r => r.RoomName).FirstOrDefaultAsync(r => r == model.RoomName);
+                    if (existingRoomName != null)
+                    {
+                        return false;
+                    }
+                }
                 _mapper.Map(model, existingRoom);
                 await _dbContext.SaveChangesAsync();
                 return true;

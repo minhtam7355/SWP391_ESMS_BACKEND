@@ -21,6 +21,11 @@ namespace SWP391_ESMS.Repositories
         {
             try
             {
+                var existingCourseName = await _dbContext.Courses.Select(c => c.CourseName).FirstOrDefaultAsync(c => c == model.CourseName);
+                if (existingCourseName != null)
+                {
+                    return false;
+                }
                 var newCourse = _mapper.Map<Course>(model);
                 newCourse.CourseId = Guid.NewGuid();
                 await _dbContext.Courses.AddAsync(newCourse);
@@ -71,6 +76,14 @@ namespace SWP391_ESMS.Repositories
 
             if (existingCourse != null)
             {
+                if (model.CourseName != existingCourse.CourseName)
+                {
+                    var existingCourseName = await _dbContext.Courses.Select(c => c.CourseName).FirstOrDefaultAsync(c => c == model.CourseName);
+                    if (existingCourseName != null)
+                    {
+                        return false;
+                    }
+                }
                 _mapper.Map(model, existingCourse);
                 await _dbContext.SaveChangesAsync();
                 return true;
