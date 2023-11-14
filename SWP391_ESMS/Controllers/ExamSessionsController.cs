@@ -327,25 +327,28 @@ namespace SWP391_ESMS.Controllers
 
             if (file != null && file.Length > 0)
             {
-                // Define the upload folder and file path
-                var uploadsFolder = $"{Directory.GetCurrentDirectory()}\\wwwroot\\Uploads\\";
+                //// Define the upload folder and file path
+                //var uploadsFolder = $"{Directory.GetCurrentDirectory()}\\wwwroot\\Uploads\\";
 
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
+                //if (!Directory.Exists(uploadsFolder))
+                //{
+                //    Directory.CreateDirectory(uploadsFolder);
+                //}
 
-                var filePath = Path.Combine(uploadsFolder, file.FileName);
+                //var filePath = Path.Combine(uploadsFolder, file.FileName);
 
-                // Save the uploaded file
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
+                //// Save the uploaded file
+                //using (var stream = new FileStream(filePath, FileMode.Create))
+                //{
+                //    await file.CopyToAsync(stream);
+                //}
 
                 // Validate the contents of the Excel file
-                using (var stream = System.IO.File.Open(filePath, FileMode.Open, FileAccess.Read))
+                using (var stream = new MemoryStream())
                 {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+
                     using (var reader = ExcelReaderFactory.CreateReader(stream))
                     {
                         do
@@ -354,6 +357,20 @@ namespace SWP391_ESMS.Controllers
 
                             while (reader.Read())
                             {
+                                // Check if there is any data in the current row
+                                if (reader.IsDBNull(0) && reader.IsDBNull(1) && reader.IsDBNull(2))
+                                {
+                                    // Break the loop if there is no data in the current row
+                                    break;
+                                }
+
+                                // Check if any of the cells is null
+                                if (reader.IsDBNull(0) || reader.IsDBNull(1) || reader.IsDBNull(2))
+                                {
+                                    // Return BadRequest if any of the cells is null
+                                    return BadRequest("Invalid data format. Each row should contain data in all three columns");
+                                }
+
                                 if (!isHeaderSkipped)
                                 {
                                     // Skip the header row
