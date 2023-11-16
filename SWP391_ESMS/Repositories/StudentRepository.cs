@@ -89,6 +89,13 @@ namespace SWP391_ESMS.Repositories
             return _mapper.Map<StudentModel>(student);
         }
 
+        public async Task<List<StudentModel>?> GetStudentsByCourseAsync(Guid courseId)
+        {
+            var course = await _dbContext.Courses.FindAsync(courseId);
+            if (course == null) return null;
+            return _mapper.Map<List<StudentModel>>(course.Students);
+        }
+
         public async Task<List<StudentModel>?> GetStudentsByExamSessionAsync(Guid examSessionId)
         {
             var examSession = await _dbContext.ExamSessions.FindAsync(examSessionId);

@@ -1,7 +1,16 @@
 {
   "dependencies": {
+    "apis2": {
+      "ignored": "true",
+      "type": "apis.azure"
+    },
     "apis1": {
+      "ignored": "true",
       "type": "apis"
+    },
+    "identityapp1": {
+      "ignored": "true",
+      "type": "identityapp"
     },
     "mssql1": {
       "type": "mssql",

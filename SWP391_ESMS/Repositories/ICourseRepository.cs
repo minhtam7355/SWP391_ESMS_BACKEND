@@ -15,5 +15,9 @@ namespace SWP391_ESMS.Repositories
         public Task<Boolean> DeleteCourseAsync(Guid id);
 
         public Task<Guid?> GetCourseIdByNameAsync(string? courseName);
+
+        public Task<Boolean> RemoveStudentFromCourseAsync(Guid courseId, Guid studentId);
+
+        public Task<Boolean> AddStudentToCourseAsync(Guid courseId, Guid studentId);
     }
 }

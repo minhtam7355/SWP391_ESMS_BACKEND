@@ -266,6 +266,18 @@ namespace SWP391_ESMS.Repositories
 
         public async Task<List<ExamSessionModel>> GetAllExamSessionsAsync()
         {
+            // Get the start date and end date of the current examination supervision allowance period
+            DateTime allowanceStartDate;
+
+            if (DateTime.Now.Day <= 15)
+            {
+                allowanceStartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            }
+            else
+            {
+                allowanceStartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 16);
+            }
+
             var examSessions = await _dbContext.ExamSessions.ToListAsync();
 
             foreach (var examSession in examSessions)
@@ -277,6 +289,10 @@ namespace SWP391_ESMS.Repositories
                 else
                 {
                     examSession.IsPassed = false; // Update isPassed to false if the exam date is in the future.
+                }
+                if (examSession.ExamDate < allowanceStartDate)
+                {
+                    examSession.IsPaid = true; // Update isPaid to true if the exam date is before the allowanceStartDate.
                 }
             }
 

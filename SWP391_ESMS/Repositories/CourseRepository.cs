@@ -39,6 +39,34 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
+        public async Task<Boolean> AddStudentToCourseAsync(Guid courseId, Guid studentId)
+        {
+            try
+            {
+                var course = await _dbContext.Courses.FindAsync(courseId);
+                var student = await _dbContext.Students.FindAsync(studentId);
+
+                if (course == null || student == null)
+                {
+                    return false; // Course or student not found.
+                }
+
+                // Check if the student is not already enrolled in the course.
+                if (!course.Students.Contains(student))
+                {
+                    course.Students.Add(student);
+                    await _dbContext.SaveChangesAsync();
+                    return true;
+                }
+
+                return false; // Student is already enrolled in the course.
+            }
+            catch (Exception)
+            {
+                return false; // Error occurred during the addition process.
+            }
+        }
+
         public async Task<Boolean> DeleteCourseAsync(Guid id)
         {
             var deleteCourse = await _dbContext.Courses.FindAsync(id);
@@ -68,6 +96,34 @@ namespace SWP391_ESMS.Repositories
             var course = await _dbContext.Courses.FirstOrDefaultAsync(c => c.CourseName == courseName);
             if (course == null) { return null; }
             return course.CourseId;
+        }
+
+        public async Task<Boolean> RemoveStudentFromCourseAsync(Guid courseId, Guid studentId)
+        {
+            try
+            {
+                var course = await _dbContext.Courses.FindAsync(courseId);
+                var student = await _dbContext.Students.FindAsync(studentId);
+
+                if (course == null || student == null)
+                {
+                    return false; // Course or student not found.
+                }
+
+                // Check if the student is enrolled in the course.
+                if (course.Students.Contains(student))
+                {
+                    course.Students.Remove(student);
+                    await _dbContext.SaveChangesAsync();
+                    return true;
+                }
+
+                return false; // Student not enrolled in the course.
+            }
+            catch (Exception)
+            {
+                return false; // Error occurred during the removal process.
+            }
         }
 
         public async Task<Boolean> UpdateCourseAsync(CourseModel model)

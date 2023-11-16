@@ -111,5 +111,49 @@ namespace SWP391_ESMS.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPut("removestudent/{courseId}/{studentId}")]
+        public async Task<IActionResult> RemoveStudentFromCourse([FromRoute] Guid courseId, [FromRoute] Guid studentId)
+        {
+            try
+            {
+                bool result = await _courseRepo.RemoveStudentFromCourseAsync(courseId, studentId);
+
+                if (result)
+                {
+                    return Ok("Student removed from the course successfully");
+                }
+                else
+                {
+                    return BadRequest("Failed to remove the student from the course");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("addstudent/{courseId}/{studentId}")]
+        public async Task<IActionResult> AddStudentToCourse([FromRoute] Guid courseId, [FromRoute] Guid studentId)
+        {
+            try
+            {
+                bool result = await _courseRepo.AddStudentToCourseAsync(courseId, studentId);
+
+                if (result)
+                {
+                    return Ok("Student added to the course successfully");
+                }
+                else
+                {
+                    return BadRequest("Failed to add the student to the course");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
