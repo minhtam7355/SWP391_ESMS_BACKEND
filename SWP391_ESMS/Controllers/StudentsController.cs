@@ -167,6 +167,26 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
+        [HttpGet("getunenrolledbymajor/{courseId}")]
+        public async Task<IActionResult> GetUnenrolledStudentsByMajor([FromRoute] Guid courseId)
+        {
+            try
+            {
+                var result = await _studentRepo.GetStudentsNotEnrolledInCourseByMajorAsync(courseId);
+
+                if (result == null)
+                {
+                    return NotFound("Course or Major not found");
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpGet("getbysession/{examSessionId}")]
         public async Task<IActionResult> GetStudentsByExamSession([FromRoute] Guid examSessionId)
         {

@@ -103,6 +103,31 @@ namespace SWP391_ESMS.Repositories
             return _mapper.Map<List<StudentModel>>(examSession.Students);
         }
 
+        public async Task<List<StudentModel>?> GetStudentsNotEnrolledInCourseByMajorAsync(Guid courseId)
+        {
+            try
+            {
+                // Find the course by courseId
+                var course = await _dbContext.Courses
+                    .Include(c => c.Major) // Include the Major navigation property
+                    .FirstOrDefaultAsync(c => c.CourseId == courseId);
+
+                if (course == null || course.Major == null)
+                    return null; // Course or Major not found
+
+                // Query to retrieve students who belong to the major but are not enrolled in the course
+                var unenrolledStudents = await _dbContext.Students
+                    .Where(s => s.MajorId == course.Major.MajorId && !s.Courses.Any(c => c.CourseId == courseId))
+                    .ToListAsync();
+
+                return _mapper.Map<List<StudentModel>>(unenrolledStudents);
+            }
+            catch (Exception)
+            {
+                return null; // Handle the error appropriately.
+            }
+        }
+
         public async Task<List<StudentModel>?> GetUnassignedStudentsAsync(Guid courseId)
         {
             try
