@@ -208,8 +208,8 @@ namespace SWP391_ESMS.Controllers
             Response += "<strong>Exam Details:</strong>";
             Response += "<ul>";
             Response += $"<li>Course Name: {examSession.CourseName}</li>";
-            Response += $"<li>Exam Format: {examSession.ExamFormat}</li>";
-            Response += $"<li>Exam Date and Time: {formattedExamDate}, {examSession.StartTime} - {examSession.EndTime}</li>";
+            Response += $"<li>Exam Format: {examSession.ExamFormatCode} - {examSession.ExamFormatName}</li>";
+            Response += $"<li>Exam Date and Time: {formattedExamDate}, {examSession.ShiftName}</li>";
             Response += $"<li>Exam Location: {examSession.RoomName}</li>";
             Response += "</ul>";
             Response += "<p>In case of any issues or questions during the exam, please contact examschedulemanagementsystem@gmail.com. Your support in ensuring the integrity of the exam is greatly appreciated.</p>";

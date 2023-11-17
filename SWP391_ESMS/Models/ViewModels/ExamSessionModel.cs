@@ -7,18 +7,18 @@
         public Guid? CourseId { get; set; }
 
         public string? CourseName { get; set; }
-        
-        public string? ExamFormat { get; set; }
+
+        public Guid? ExamPeriodId { get; set; }
+
+        public string? ExamFormatCode { get; set; }
+
+        public string? ExamFormatName { get; set; }
 
         public DateTime? ExamDate { get; set; }
 
         public Guid? ShiftId { get; set; }
 
         public string? ShiftName { get; set; }
-
-        public TimeSpan? StartTime { get; set; }
-
-        public TimeSpan? EndTime { get; set; }
 
         public Guid? RoomId { get; set; }
 

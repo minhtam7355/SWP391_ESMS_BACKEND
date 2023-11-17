@@ -9,7 +9,7 @@ public partial class ExamSession
 
     public Guid? CourseId { get; set; }
 
-    public string? ExamFormat { get; set; }
+    public Guid? ExamPeriodId { get; set; }
 
     public DateTime? ExamDate { get; set; }
 
@@ -28,6 +28,10 @@ public partial class ExamSession
     public bool? IsPaid { get; set; }
 
     public virtual Course? Course { get; set; }
+
+    public virtual ExamPeriod? ExamPeriod { get; set; }
+
+    public virtual ICollection<ProctoringRequest> ProctoringRequests { get; set; } = new List<ProctoringRequest>();
 
     public virtual ExamRoom? Room { get; set; }
 

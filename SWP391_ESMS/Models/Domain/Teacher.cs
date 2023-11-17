@@ -30,4 +30,6 @@ public partial class Teacher
     public virtual ICollection<ExamSession> ExamSessions { get; set; } = new List<ExamSession>();
 
     public virtual Major? Major { get; set; }
+
+    public virtual ICollection<ProctoringRequest> ProctoringRequests { get; set; } = new List<ProctoringRequest>();
 }

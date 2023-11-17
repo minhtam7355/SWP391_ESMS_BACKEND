@@ -23,97 +23,116 @@ namespace SWP391_ESMS.Repositories
         {
             try
             {
+                var examSession = new ExamSession
+                {
+                    ExamSessionId = Guid.NewGuid(),
+                    CourseId = model.CourseId,
+                    ExamPeriodId = model.ExamPeriodId,
+                    ExamDate = model.ExamDate,
+                    ShiftId = model.ShiftId,
+                    RoomId = null,
+                    StudentsEnrolled = 0, // Initialize students enrolled to 0
+                    TeacherId = null,
+                    StaffId = model.StaffId,
+                    IsPassed = false,
+                    IsPaid = false
+                };
+
+                await _dbContext.ExamSessions.AddAsync(examSession);
+                await _dbContext.SaveChangesAsync();
+
+
                 // Fetch students who are taking the specified course and meet the following criteria:
                 // They have no active exam sessions for the same course and format.
-                var courseEnrollments = await _dbContext.Courses
-                    .Where(ce => ce.CourseId == model.CourseId)
-                    .SelectMany(ce => ce.Students
-                        .Where(student => !student.ExamSessions
-                            .Any(es =>
-                                es.CourseId == model.CourseId &&
-                                es.ExamFormat == model.ExamFormat &&
-                                es.IsPassed == false)))
-                    .ToListAsync();
+                //var courseEnrollments = await _dbContext.Courses
+                //    .Where(ce => ce.CourseId == model.CourseId)
+                //    .SelectMany(ce => ce.Students
+                //        .Where(student => !student.ExamSessions
+                //            .Any(es =>
+                //                es.CourseId == model.CourseId &&
+                //                es.ExamFormat == model.ExamFormat &&
+                //                es.IsPassed == false)))
+                //    .ToListAsync();
 
 
-                // Check if there are eligible students in the course
-                if (courseEnrollments == null || !courseEnrollments.Any())
-                {
-                    return false; // No eligible students for the course and format.
-                }
+                //// Check if there are eligible students in the course
+                //if (courseEnrollments == null || !courseEnrollments.Any())
+                //{
+                //    return false; // No eligible students for the course and format.
+                //}
 
                 // Determine the number of exam sessions needed
-                int numStudents = courseEnrollments.Count;
-                int maxStudentsPerSession = (int) await _dbContext.ConfigurationSettings
-                                                                .Where(cs => cs.SettingName == "Max Students Per Session")
-                                                                .Select(cs => cs.SettingValue).SingleOrDefaultAsync();
-                int numSessions = (int)Math.Ceiling((double)numStudents / maxStudentsPerSession);
+                //int numStudents = courseEnrollments.Count;
+                //int maxStudentsPerSession = (int)await _dbContext.ConfigurationSettings
+                //                                                .Where(cs => cs.SettingName == "Max Students Per Session")
+                //                                                .Select(cs => cs.SettingValue).SingleOrDefaultAsync();
+                //int numSessions = (int)Math.Ceiling((double)numStudents / maxStudentsPerSession);
 
                 // Get all exam rooms and exam shifts
-                var allExamRooms = await _dbContext.ExamRooms.ToListAsync();
-                var allExamShifts = await _dbContext.ExamShifts.ToListAsync();
+                //var allExamRooms = await _dbContext.ExamRooms.ToListAsync();
+                //var allExamShifts = await _dbContext.ExamShifts.ToListAsync();
 
                 // Generate all possible combinations of exam rooms and shifts
-                var allCombinations = allExamRooms.SelectMany(room => allExamShifts, (room, shift) => new { room, shift });
+                //var allCombinations = allExamRooms.SelectMany(room => allExamShifts, (room, shift) => new { room, shift });
 
                 // Get exam sessions for the same exam date
-                var existingSessionsSameDate = await _dbContext.ExamSessions
-                    .Where(es => es.ExamDate == model.ExamDate)
-                    .Select(es => new { es.RoomId, es.ShiftId })
-                    .ToListAsync();
+                //var existingSessionsSameDate = await _dbContext.ExamSessions
+                //    .Where(es => es.ExamDate == model.ExamDate)
+                //    .Select(es => new { es.RoomId, es.ShiftId })
+                //    .ToListAsync();
 
                 // Remove combinations that are already in use on the same date and format
-                var availableCombinations = allCombinations
-                    .Where(combination =>
-                        !existingSessionsSameDate.Any(existingSession =>
-                            existingSession.RoomId == combination.room.RoomId &&
-                            existingSession.ShiftId == combination.shift.ShiftId))
-                    .ToList();
+                //var availableCombinations = allCombinations
+                //    .Where(combination =>
+                //        !existingSessionsSameDate.Any(existingSession =>
+                //            existingSession.RoomId == combination.room.RoomId &&
+                //            existingSession.ShiftId == combination.shift.ShiftId))
+                //    .ToList();
 
                 // Check if the number of available combinations is lower than the number of numSessions
-                if (availableCombinations.Count < numSessions)
-                {
-                    return false; // Not enough available combinations.
-                }
+                //if (availableCombinations.Count < numSessions)
+                //{
+                //    return false; // Not enough available combinations.
+                //}
 
                 // Generate and create unique exam sessions
-                var examSessions = new List<ExamSession>();
-                for (int i = 0; i < numSessions; i++)
-                {
-                    // Get the next available combination from availableCombinations
-                    var availableCombination = availableCombinations[i % availableCombinations.Count];
+                //var examSessions = new List<ExamSession>();
+                //for (int i = 0; i < numSessions; i++)
+                //{
+                // Get the next available combination from availableCombinations
+                //var availableCombination = availableCombinations[i % availableCombinations.Count];
 
-                    var examSession = new ExamSession
-                    {
-                        ExamSessionId = Guid.NewGuid(),
-                        CourseId = model.CourseId,
-                        ExamFormat = model.ExamFormat,
-                        ExamDate = model.ExamDate,
-                        ShiftId = availableCombination.shift.ShiftId,
-                        RoomId = availableCombination.room.RoomId,
-                        StudentsEnrolled = 0, // Initialize students enrolled to 0
-                        TeacherId = null,
-                        StaffId = model.StaffId,
-                        IsPassed = false,
-                        IsPaid = false
-                    };
+                //var examSession = new ExamSession
+                //{
+                //    ExamSessionId = Guid.NewGuid(),
+                //    CourseId = model.CourseId,
+                //    ExamFormat = model.ExamFormat,
+                //    ExamDate = model.ExamDate,
+                //    ShiftId = availableCombination.shift.ShiftId,
+                //    RoomId = availableCombination.room.RoomId,
+                //    StudentsEnrolled = 0, // Initialize students enrolled to 0
+                //    TeacherId = null,
+                //    StaffId = model.StaffId,
+                //    IsPassed = false,
+                //    IsPaid = false
+                //};
 
-                    // Fetch students for this session and register them
-                    int studentsToTake = Math.Min(maxStudentsPerSession, courseEnrollments.Count); // Take up to maxStudentsPerSession or the remaining students.
-                    var studentsForSession = courseEnrollments.Take(studentsToTake).ToList();
-                    courseEnrollments = courseEnrollments.Skip(studentsToTake).ToList();
+                // Fetch students for this session and register them
+                //    int studentsToTake = Math.Min(maxStudentsPerSession, courseEnrollments.Count); // Take up to maxStudentsPerSession or the remaining students.
+                //    var studentsForSession = courseEnrollments.Take(studentsToTake).ToList();
+                //    courseEnrollments = courseEnrollments.Skip(studentsToTake).ToList();
 
-                    foreach (var student in studentsForSession)
-                    {
-                        examSession.Students.Add(student);
-                    }
+                //    foreach (var student in studentsForSession)
+                //    {
+                //        examSession.Students.Add(student);
+                //    }
 
-                    examSessions.Add(examSession);
-                }
+                //    examSessions.Add(examSession);
+                //}
 
                 // Add exam sessions to the database
-                await _dbContext.ExamSessions.AddRangeAsync(examSessions);
-                await _dbContext.SaveChangesAsync();
+                //await _dbContext.ExamSessions.AddRangeAsync(examSessions);
+                //await _dbContext.SaveChangesAsync();
 
                 return true;
             }

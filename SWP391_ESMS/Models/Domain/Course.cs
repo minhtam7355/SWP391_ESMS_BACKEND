@@ -15,5 +15,7 @@ public partial class Course
 
     public virtual Major? Major { get; set; }
 
+    public virtual ICollection<ExamFormat> ExamFormats { get; set; } = new List<ExamFormat>();
+
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

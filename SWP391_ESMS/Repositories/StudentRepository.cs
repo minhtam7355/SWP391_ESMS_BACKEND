@@ -65,7 +65,8 @@ namespace SWP391_ESMS.Repositories
                 var majorDistributionTasks = majors
                     .ToDictionary(
                         major => major.MajorName!,
-                        major => {
+                        major =>
+                        {
                             var studentsInMajor = _dbContext.Students
                                 .Where(student => student.MajorId == major.MajorId)
                                 .ToList();

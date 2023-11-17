@@ -18,6 +18,15 @@ namespace SWP391_ESMS.Helpers
 
             CreateMap<CourseModel, Course>();
 
+            CreateMap<ExamFormat, ExamFormatModel>()
+                .ReverseMap();
+
+            CreateMap<ExamPeriod, ExamPeriodModel>()
+                .ForMember(dest => dest.ExamFormatCode, opt => opt.MapFrom(src => src.ExamFormat!.ExamFormatCode))
+                .ForMember(dest => dest.ExamFormatName, opt => opt.MapFrom(src => src.ExamFormat!.ExamFormatName));
+
+            CreateMap<ExamPeriodModel, ExamPeriod>();
+
             CreateMap<ExamRoom, ExamRoomModel>()
                 .ReverseMap();
 
@@ -25,12 +34,12 @@ namespace SWP391_ESMS.Helpers
                 .ForMember(dest => dest.ExamSessionId, opt => opt.MapFrom(src => src.ExamSessionId))
                 .ForMember(dest => dest.CourseId, opt => opt.MapFrom(src => src.CourseId))
                 .ForMember(dest => dest.CourseName, opt => opt.MapFrom(src => src.Course!.CourseName))
-                .ForMember(dest => dest.ExamFormat, opt => opt.MapFrom(src => src.ExamFormat))
+                .ForMember(dest => dest.ExamPeriodId, opt => opt.MapFrom(src => src.ExamPeriodId))
+                .ForMember(dest => dest.ExamFormatCode, opt => opt.MapFrom(src => src.ExamPeriod!.ExamFormat!.ExamFormatCode))
+                .ForMember(dest => dest.ExamFormatName, opt => opt.MapFrom(src => src.ExamPeriod!.ExamFormat!.ExamFormatName))
                 .ForMember(dest => dest.ExamDate, opt => opt.MapFrom(src => src.ExamDate))
                 .ForMember(dest => dest.ShiftId, opt => opt.MapFrom(src => src.ShiftId))
                 .ForMember(dest => dest.ShiftName, opt => opt.MapFrom(src => src.Shift!.ShiftName))
-                .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.Shift!.StartTime))
-                .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.Shift!.EndTime))
                 .ForMember(dest => dest.RoomId, opt => opt.MapFrom(src => src.RoomId))
                 .ForMember(dest => dest.RoomName, opt => opt.MapFrom(src => src.Room!.RoomName))
                 .ForMember(dest => dest.StudentsEnrolled, opt => opt.MapFrom(src => src.StudentsEnrolled))
@@ -49,6 +58,18 @@ namespace SWP391_ESMS.Helpers
             CreateMap<Major, MajorModel>()
                 .ReverseMap();
 
+            CreateMap<ProctoringRequest, ProctoringRequestModel>()
+                .ForMember(dest => dest.ExamPeriodName, opt => opt.MapFrom(src => src.ExamSession!.ExamPeriod!.ExamPeriodName))
+                .ForMember(dest => dest.CourseName, opt => opt.MapFrom(src => src.ExamSession!.Course!.CourseName))
+                .ForMember(dest => dest.ExamDate, opt => opt.MapFrom(src => src.ExamSession!.ExamDate))
+                .ForMember(dest => dest.ShiftName, opt => opt.MapFrom(src => src.ExamSession!.Shift!.ShiftName))
+                .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src => src.Teacher!.FullName));
+
+            CreateMap<ProctoringRequestModel, ProctoringRequest>();
+
+            CreateMap<Staff, StaffModel>()
+                .ReverseMap();
+
             CreateMap<Student, StudentModel>()
                 .ForMember(dest => dest.MajorName, opt => opt.MapFrom(src => src.Major!.MajorName));
 
@@ -58,9 +79,6 @@ namespace SWP391_ESMS.Helpers
                 .ForMember(dest => dest.MajorName, opt => opt.MapFrom(src => src.Major!.MajorName));
 
             CreateMap<TeacherModel, Teacher>();
-
-            CreateMap<Staff, StaffModel>()
-                .ReverseMap();
 
             // ACCESS MAPPING
             CreateMap<Student, UserInfo>()

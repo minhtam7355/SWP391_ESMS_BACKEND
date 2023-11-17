@@ -78,10 +78,33 @@ CREATE TABLE ExamShifts (
     EndTime TIME
 );
 
+CREATE TABLE ExamFormats (
+    ExamFormatID UNIQUEIDENTIFIER PRIMARY KEY,
+	ExamFormatCode VARCHAR(255),
+    ExamFormatName VARCHAR(255)
+);
+
+CREATE TABLE ExamFormatCourseAssociations (
+    PRIMARY KEY (ExamFormatID, CourseID),
+	ExamFormatID UNIQUEIDENTIFIER,
+    CourseID UNIQUEIDENTIFIER,
+    FOREIGN KEY (ExamFormatID) REFERENCES ExamFormats(ExamFormatID) ON DELETE CASCADE,
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID) ON DELETE CASCADE
+);
+
+CREATE TABLE ExamPeriods (
+    ExamPeriodID UNIQUEIDENTIFIER PRIMARY KEY,
+	ExamPeriodName VARCHAR(255),
+    ExamFormatID UNIQUEIDENTIFIER,
+    StartDate DATE,
+    EndDate DATE,
+	FOREIGN KEY (ExamFormatID) REFERENCES ExamFormats(ExamFormatID)
+);
+
 CREATE TABLE ExamSessions (
     ExamSessionID UNIQUEIDENTIFIER PRIMARY KEY,
     CourseID UNIQUEIDENTIFIER, -- Foreign key reference to Courses
-	ExamFormat VARCHAR(255), -- New field to store the exam format
+    ExamPeriodID UNIQUEIDENTIFIER,
 	ExamDate DATE,
 	ShiftID UNIQUEIDENTIFIER, -- Foreign key reference to ExamShifts
 	RoomID UNIQUEIDENTIFIER, -- Foreign key reference to ExamRooms
@@ -91,6 +114,7 @@ CREATE TABLE ExamSessions (
 	IsPassed BIT,
 	IsPaid BIT,
     FOREIGN KEY (CourseID) REFERENCES Courses(CourseID),
+	FOREIGN KEY (ExamPeriodID) REFERENCES ExamPeriods(ExamPeriodID) ON DELETE CASCADE,
 	FOREIGN KEY (ShiftID) REFERENCES ExamShifts(ShiftID),
     FOREIGN KEY (RoomID) REFERENCES ExamRooms(RoomID),
     FOREIGN KEY (TeacherID) REFERENCES Teachers(TeacherID),
@@ -103,6 +127,17 @@ CREATE TABLE ExamEnrollments (
     StudentID UNIQUEIDENTIFIER,
     FOREIGN KEY (ExamSessionID) REFERENCES ExamSessions(ExamSessionID) ON DELETE CASCADE,
     FOREIGN KEY (StudentID) REFERENCES Students(StudentID) ON DELETE CASCADE
+);
+
+CREATE TABLE ProctoringRequests (
+    RequestID UNIQUEIDENTIFIER PRIMARY KEY,
+    RequestType VARCHAR(255), -- For example, 'Proctor' or 'Cancel Proctor'
+    RequestStatus BIT, -- Status of the request
+    RequestDate DATETIME, -- Store both date and time
+    ExamSessionID UNIQUEIDENTIFIER,
+    TeacherID UNIQUEIDENTIFIER,
+    FOREIGN KEY (ExamSessionID) REFERENCES ExamSessions(ExamSessionID) ON DELETE CASCADE,
+    FOREIGN KEY (TeacherID) REFERENCES Teachers(TeacherID) ON DELETE CASCADE
 );
 
 CREATE TABLE ConfigurationSettings (
@@ -2160,106 +2195,36 @@ VALUES
 -- Insert data into the ExamShifts table
 INSERT INTO ExamShifts (ShiftID, ShiftName, StartTime, EndTime)
 VALUES
-    (NEWID(), 'Shift 1', '07:00:00', '08:30:00'),
-    (NEWID(), 'Shift 2', '08:45:00', '10:15:00'),
-    (NEWID(), 'Shift 3', '10:30:00', '12:00:00'),
-    (NEWID(), 'Shift 4', '12:15:00', '13:45:00'),
-    (NEWID(), 'Shift 5', '14:00:00', '15:30:00'),
-    (NEWID(), 'Shift 6', '15:45:00', '17:15:00'),
-    (NEWID(), 'Shift 7', '17:30:00', '19:00:00');
+    (NEWID(), '7AM - 8:30AM Shift', '07:00:00', '08:30:00'),
+    (NEWID(), '8:45AM - 10:15AM Shift', '08:45:00', '10:15:00'),
+    (NEWID(), '10:30AM - 12:00PM Shift', '10:30:00', '12:00:00'),
+    (NEWID(), '12:15PM - 1:45PM Shift', '12:15:00', '13:45:00'),
+    (NEWID(), '2:00PM - 3:30PM Shift', '14:00:00', '15:30:00'),
+    (NEWID(), '3:45PM - 5:15PM Shift', '15:45:00', '17:15:00'),
+    (NEWID(), '5:30PM - 7:00PM Shift', '17:30:00', '19:00:00');
 
--- Insert data into the ExamSessions table
-    INSERT INTO ExamSessions (ExamSessionID, CourseID, ExamFormat, ExamDate, ShiftID, RoomID, StudentsEnrolled, TeacherID, StaffID, IsPassed, IsPaid) VALUES (NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development'), 'Theory Exam', '2023-11-10', (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 1'), (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 1'), 0, (SELECT TeacherID FROM Teachers WHERE FullName = 'Moshe Barrington'), (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), 1, 0);
-    INSERT INTO ExamSessions (ExamSessionID, CourseID, ExamFormat, ExamDate, ShiftID, RoomID, StudentsEnrolled, TeacherID, StaffID, IsPassed, IsPaid) VALUES (NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals'), 'Theory Exam', '2023-11-10', (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 1'), (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 3'), 0, (SELECT TeacherID FROM Teachers WHERE FullName = 'Derek Odlin'), (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), 1, 0);
-    INSERT INTO ExamSessions (ExamSessionID, CourseID, ExamFormat, ExamDate, ShiftID, RoomID, StudentsEnrolled, TeacherID, StaffID, IsPassed, IsPaid) VALUES (NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics'), 'Practical Exam', '2023-11-10', (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 3'), (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 1'), 0, (SELECT TeacherID FROM Teachers WHERE FullName = 'Olva Hankin'), (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), 1, 0);
-	INSERT INTO ExamSessions (ExamSessionID, CourseID, ExamFormat, ExamDate, ShiftID, RoomID, StudentsEnrolled, TeacherID, StaffID, IsPassed, IsPaid) VALUES (NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing'), 'Theory Exam', '2023-11-20', (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 1'), (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 1'), 0, (SELECT TeacherID FROM Teachers WHERE FullName = 'Sebastiano Forrestor'), (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), 0, 0);
-	INSERT INTO ExamSessions (ExamSessionID, CourseID, ExamFormat, ExamDate, ShiftID, RoomID, StudentsEnrolled, TeacherID, StaffID, IsPassed, IsPaid) VALUES (NEWID(), (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management'), 'Theory Exam', '2023-11-20', (SELECT ShiftID FROM ExamShifts WHERE ShiftName = 'Shift 7'), (SELECT RoomID FROM ExamRooms WHERE RoomName = 'Room 5'), 0, (SELECT TeacherID FROM Teachers WHERE FullName = 'Lacey Rizzolo'), (SELECT TOP 1 StaffID FROM Staff WHERE StaffRole = 'Testing Admin'), 0, 0);
+INSERT INTO ExamFormats (ExamFormatID, ExamFormatCode, ExamFormatName)
+VALUES
+	(NEWID(), 'FE', 'Final Exam'),
+	(NEWID(), 'PE', 'Practical Exam'),
+	(NEWID(), 'RE', 'Retake Exam');
 
--- Insert data into the ExamEnrollments table
-    INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Ronny Blakeborough'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Lyndsay Segge'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Ricca Gricewood'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Cecile Bellhouse'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Glory Wycliffe'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Leroi Poyle'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Jobyna Oldaker'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Krishna Leet'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Bernie Lawtie'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Gare Bahde'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Yehudit Denyukin'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Yard Lightowler'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Fayette Vinnicombe'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Tildie Cornels'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Web Development') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Julianna Rocks'));
-
-
-    INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Mareah Howles'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Nikolas Jodrellec'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Rheba Dirand'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Ruthe Catteroll'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Nicki McLugish'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Domeniga Oakden'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Evin Chetwynd'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Libbey Quinn'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Boyce Holworth'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Merrick Dutnall'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Mahalia Meldon'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Janie Quickenden'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Valentia Caulder'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Gay McGilvra'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Artificial Intelligence Fundamentals') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Dermot Simondson'));
-
-
-    INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Lonna Gentery'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Rex Cripps'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Osgood Medcraft'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Patsy Cornfield'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Casey Minney'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Willetta Liebermann'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Delly Busst'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Riki Orford'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Putnam Elecum'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Norbert Beininck'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Aluin Kerbey'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Iggy Elliott'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Chrissy Doud'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Ellissa Kinny'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Motion Graphics') AND ExamDate = '2023-11-10'), (SELECT StudentID FROM Students WHERE FullName = 'Shoshanna Milkins'));
-	
-
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Margaretha Beneteau'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Pet Glas'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Maude Coyett'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Jakie Drinkel'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'York Yakebovitch'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Eartha McQuarrie'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Willamina O''Doohaine'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Barr Fidgett'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Eden Ivanilov'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Jeromy Le febre'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Lindsey Fisher'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Maurise Musslewhite'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Angelia Zavattari'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Jean Coye'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Social Media Marketing') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Ilysa Strank'));
-
-
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Jakob Mallabon'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Nicolina Iskow'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Vince Ashbe'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Adria Fawlo'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Gregory Barenskie'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Stavros Draxford'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Hamid Finlow'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Raffarty Cline'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Clarine Crookall'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Leopold Branchett'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Tymon Goldberg'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Kariotta Legendre'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Drew Roelofs'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Darryl Heyworth'));
-	INSERT INTO ExamEnrollments (ExamSessionID, StudentID) VALUES ((SELECT ExamSessionID FROM ExamSessions WHERE CourseID = (SELECT CourseID FROM Courses WHERE CourseName = 'Cross-Cultural Management') AND ExamDate = '2023-11-20'), (SELECT StudentID FROM Students WHERE FullName = 'Belita Stuchbury'));
-
+-- Insert data into the join table
+INSERT INTO ExamFormatCourseAssociations (ExamFormatID, CourseID)
+SELECT ef.ExamFormatID, c.CourseID
+FROM ExamFormats ef
+CROSS JOIN Courses c
+JOIN Majors m ON c.MajorID = m.MajorID
+WHERE 
+    (ef.ExamFormatCode = 'FE' OR ef.ExamFormatCode = 'RE') -- All courses have FE and RE
+    OR 
+    (ef.ExamFormatCode = 'PE' AND
+        (
+            SELECT COUNT(*)
+            FROM ExamFormatCourseAssociations eca
+            WHERE eca.ExamFormatID = ef.ExamFormatID
+        ) = 0
+    );
 
 -- Insert data into the Settings table
 INSERT INTO ConfigurationSettings(SettingID, SettingName, SettingValue, SettingDescription)
