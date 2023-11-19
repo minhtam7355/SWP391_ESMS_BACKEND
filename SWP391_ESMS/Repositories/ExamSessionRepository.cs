@@ -23,6 +23,24 @@ namespace SWP391_ESMS.Repositories
         {
             try
             {
+                var examPeriod = await _dbContext.ExamPeriods.FirstOrDefaultAsync(ep => ep.ExamPeriodId == model.ExamPeriodId);
+                if (model.ExamDate < examPeriod!.StartDate || model.ExamDate > examPeriod!.EndDate)
+                {
+                    return false;
+                }
+
+                // Fetch students who are taking the specified course and meet the following criteria:
+                // They have no active exam sessions for the same course and format.
+                var students = await _dbContext.Courses
+                    .Where(ce => ce.CourseId == model.CourseId)
+                    .SelectMany(ce => ce.Students
+                        .Where(student => !student.ExamSessions
+                            .Any(es =>
+                                es.CourseId == model.CourseId &&
+                                es.ExamPeriod!.ExamPeriodId == model.ExamPeriodId &&
+                                es.IsPassed == false)))
+                    .ToListAsync();
+
                 var examSession = new ExamSession
                 {
                     ExamSessionId = Guid.NewGuid(),
@@ -37,6 +55,22 @@ namespace SWP391_ESMS.Repositories
                     IsPassed = false,
                     IsPaid = false
                 };
+
+                if (students.Any())
+                {
+                    int maxStudentsPerSession = (int)await _dbContext.ConfigurationSettings
+                                                                .Where(cs => cs.SettingName == "Max Students Per Session")
+                                                                .Select(cs => cs.SettingValue).SingleOrDefaultAsync();
+
+                    // Fetch students for this session and register them
+                    int studentsToTake = Math.Min(maxStudentsPerSession, students.Count); // Take up to maxStudentsPerSession or the remaining students.
+                    var studentsForSession = students.Take(studentsToTake).ToList();
+
+                    foreach (var student in studentsForSession)
+                    {
+                        examSession.Students.Add(student);
+                    }
+                }
 
                 await _dbContext.ExamSessions.AddAsync(examSession);
                 await _dbContext.SaveChangesAsync();
