@@ -59,16 +59,17 @@ builder.Services.AddDbContext<ESMSDbContext>(option =>
 builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddScoped<IAccessRepository, AccessRepository>();
-builder.Services.AddScoped<IExamSessionRepository, ExamSessionRepository>();
-builder.Services.AddScoped<IMajorRepository, MajorRepository>();
+builder.Services.AddScoped<IConfigurationSettingRepository, ConfigurationSettingRepository>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+builder.Services.AddScoped<IExamFormatRepository, ExamFormatRepository>();
 builder.Services.AddScoped<IExamRoomRepository, ExamRoomRepository>();
+builder.Services.AddScoped<IExamSessionRepository, ExamSessionRepository>();
 builder.Services.AddScoped<IExamShiftRepository, ExamShiftRepository>();
+builder.Services.AddScoped<IMajorRepository, MajorRepository>();
+builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
+builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
-builder.Services.AddScoped<IStaffRepository, StaffRepository>();
-builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
-builder.Services.AddScoped<IConfigurationSettingRepository, ConfigurationSettingRepository>();
 
 var app = builder.Build();
 
