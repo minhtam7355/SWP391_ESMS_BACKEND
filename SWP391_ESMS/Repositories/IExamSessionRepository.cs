@@ -5,6 +5,8 @@ namespace SWP391_ESMS.Repositories
     public interface IExamSessionRepository
     {
         public Task<List<ExamSessionModel>> GetAllExamSessionsAsync();
+        
+        public Task<List<ExamSessionModel>> GetExamSessionsByPeriodAsync(Guid periodId);
 
         public Task<ExamSessionModel> GetExamSessionByIdAsync(Guid id);
 
