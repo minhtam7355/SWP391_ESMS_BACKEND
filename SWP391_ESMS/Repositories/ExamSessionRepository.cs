@@ -574,6 +574,11 @@ namespace SWP391_ESMS.Repositories
                     return false; // Do not allow to update exam session on the day of the exam.
                 }
 
+                if (model.ExamDate < existingExamSession.ExamPeriod!.StartDate || model.ExamDate > existingExamSession.ExamPeriod!.EndDate)
+                {
+                    return false;
+                }
+
                 _mapper.Map(model, existingExamSession);
 
                 if (existingExamSession.ExamDate < DateTime.Now.Date)
