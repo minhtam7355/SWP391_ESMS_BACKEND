@@ -10,6 +10,8 @@
 
         public Guid? ExamPeriodId { get; set; }
 
+        public string? ExamPeriodName { get; set; }
+
         public string? ExamFormatCode { get; set; }
 
         public string? ExamFormatName { get; set; }

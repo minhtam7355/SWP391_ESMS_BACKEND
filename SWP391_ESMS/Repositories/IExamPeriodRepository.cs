@@ -6,6 +6,8 @@ namespace SWP391_ESMS.Repositories
     {
         public Task<List<ExamPeriodModel>> GetAllExamPeriodsAsync();
 
+        public Task<ExamPeriodModel> GetExamPeriodByIdAsync(Guid id);
+
         public Task<Boolean> AddExamPeriodAsync(ExamPeriodModel model);
 
         public Task<Boolean> UpdateExamPeriodAsync(ExamPeriodModel model);

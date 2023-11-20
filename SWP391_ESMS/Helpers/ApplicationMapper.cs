@@ -35,6 +35,7 @@ namespace SWP391_ESMS.Helpers
                 .ForMember(dest => dest.CourseId, opt => opt.MapFrom(src => src.CourseId))
                 .ForMember(dest => dest.CourseName, opt => opt.MapFrom(src => src.Course!.CourseName))
                 .ForMember(dest => dest.ExamPeriodId, opt => opt.MapFrom(src => src.ExamPeriodId))
+                .ForMember(dest => dest.ExamPeriodName, opt => opt.MapFrom(src => src.ExamPeriod!.ExamPeriodName))
                 .ForMember(dest => dest.ExamFormatCode, opt => opt.MapFrom(src => src.ExamPeriod!.ExamFormat!.ExamFormatCode))
                 .ForMember(dest => dest.ExamFormatName, opt => opt.MapFrom(src => src.ExamPeriod!.ExamFormat!.ExamFormatName))
                 .ForMember(dest => dest.ExamDate, opt => opt.MapFrom(src => src.ExamDate))

@@ -35,6 +35,20 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
+        [HttpGet("getbyid/{id}")]
+        public async Task<IActionResult> GetExamPeriodById([FromRoute] Guid id)
+        {
+            try
+            {
+                var examPeriod = await _periodRepo.GetExamPeriodByIdAsync(id);
+                return Ok(examPeriod);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost("create")]
         public async Task<IActionResult> AddExamPeriod([FromBody] ExamPeriodModel model)
         {

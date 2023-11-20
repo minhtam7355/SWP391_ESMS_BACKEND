@@ -52,6 +52,12 @@ namespace SWP391_ESMS.Repositories
             return _mapper.Map<List<ExamPeriodModel>>(examPeriods);
         }
 
+        public async Task<ExamPeriodModel> GetExamPeriodByIdAsync(Guid id)
+        {
+            var examPeriod = await _dbContext.ExamPeriods.FindAsync(id);
+            return _mapper.Map<ExamPeriodModel>(examPeriod);
+        }
+
         public async Task<bool> UpdateExamPeriodAsync(ExamPeriodModel model)
         {
             var existingExamPeriod = await _dbContext.ExamPeriods.FindAsync(model.ExamPeriodId);
