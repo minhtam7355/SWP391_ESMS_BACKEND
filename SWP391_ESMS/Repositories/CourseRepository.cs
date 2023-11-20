@@ -98,6 +98,13 @@ namespace SWP391_ESMS.Repositories
             return course.CourseId;
         }
 
+        public async Task<List<CourseModel>> GetCoursesByPeriodAsync(Guid periodId)
+        {
+            var examPeriod = await _dbContext.ExamPeriods.FindAsync(periodId);
+            var courses = await _dbContext.Courses.Where(c => c.ExamFormats.Any(ef => ef == examPeriod!.ExamFormat)).ToListAsync();
+            return _mapper.Map<List<CourseModel>>(courses);
+        }
+
         public async Task<Boolean> RemoveStudentFromCourseAsync(Guid courseId, Guid studentId)
         {
             try

@@ -30,6 +30,19 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
+        [HttpGet("getbyperiod/{periodId}")]
+        public async Task<IActionResult> GetCoursesByPeriod([FromRoute] Guid periodId)
+        {
+            try
+            {
+                return Ok(await _courseRepo.GetCoursesByPeriodAsync(periodId));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpGet("getbyid/{id}")]
         public async Task<IActionResult> GetCourseById([FromRoute] Guid id)
         {

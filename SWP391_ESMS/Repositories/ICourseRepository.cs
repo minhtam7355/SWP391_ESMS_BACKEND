@@ -6,6 +6,8 @@ namespace SWP391_ESMS.Repositories
     {
         public Task<List<CourseModel>> GetAllCoursesAsync();
 
+        public Task<List<CourseModel>> GetCoursesByPeriodAsync(Guid periodId);
+
         public Task<CourseModel> GetCourseByIdAsync(Guid id);
 
         public Task<Boolean> AddCourseAsync(CourseModel model);

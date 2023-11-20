@@ -62,6 +62,7 @@ builder.Services.AddScoped<IAccessRepository, AccessRepository>();
 builder.Services.AddScoped<IConfigurationSettingRepository, ConfigurationSettingRepository>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<IExamFormatRepository, ExamFormatRepository>();
+builder.Services.AddScoped<IExamPeriodRepository, ExamPeriodRepository>();
 builder.Services.AddScoped<IExamRoomRepository, ExamRoomRepository>();
 builder.Services.AddScoped<IExamSessionRepository, ExamSessionRepository>();
 builder.Services.AddScoped<IExamShiftRepository, ExamShiftRepository>();
