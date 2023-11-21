@@ -400,12 +400,14 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
-        public async Task<List<ExamSessionModel>?> GetExamSessionsWithoutTeacherAsync()
+        public async Task<List<ExamSessionModel>?> GetExamSessionsWithoutTeacherByPeriodAsync(Guid periodId, Guid teacherId)
         {
             try
             {
                 var examSessions = await _dbContext.ExamSessions
-                    .Where(es => es.TeacherId == null)
+                    .Where(es => es.ExamPeriodId == periodId && 
+                                 es.TeacherId == null && 
+                                 !es.Requests.Any(r => r.TeacherId == teacherId && r.RequestStatus == null))
                     .ToListAsync();
 
                 return _mapper.Map<List<ExamSessionModel>>(examSessions);
@@ -522,28 +524,6 @@ namespace SWP391_ESMS.Repositories
                 if (examSession == null)
                 {
                     return false; // Exam session not found.
-                }
-
-                // Get the Cancellation Notice setting from configuration settings
-                var cancellationNoticeSetting = await _dbContext.ConfigurationSettings
-                    .FirstOrDefaultAsync(c => c.SettingName == "Cancellation Notice");
-
-                if (cancellationNoticeSetting == null || cancellationNoticeSetting.SettingValue == null)
-                {
-                    return false; // Cancellation Notice setting not found or invalid.
-                }
-
-                // Convert Cancellation Notice setting to integer
-                int cancellationNotice = Convert.ToInt32(cancellationNoticeSetting.SettingValue);
-
-                // Calculate the minimum allowed date for cancelling the appointment
-                DateTime currentDate = DateTime.Now.Date;
-                DateTime minAllowedDate = currentDate.AddDays(cancellationNotice);
-
-                // Check if the exam session date is earlier than the minimum allowed date
-                if (examSession.ExamDate < minAllowedDate)
-                {
-                    return false; // Cancellation is not allowed as the minimum date has passed.
                 }
 
                 // Check if the exam session has a teacher assigned.

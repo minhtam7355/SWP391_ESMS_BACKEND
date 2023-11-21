@@ -31,5 +31,5 @@ public partial class Teacher
 
     public virtual Major? Major { get; set; }
 
-    public virtual ICollection<ProctoringRequest> ProctoringRequests { get; set; } = new List<ProctoringRequest>();
+    public virtual ICollection<Request> Requests { get; set; } = new List<Request>();
 }

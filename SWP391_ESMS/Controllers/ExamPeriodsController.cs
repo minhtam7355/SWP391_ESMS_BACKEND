@@ -54,7 +54,7 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
-                DateTime minAllowedDate = await GetMinAllowedDateAsync();
+                DateTime minAllowedDate = await GetMinAllowedSchedulingDateAsync();
 
                 if (model.StartDate < minAllowedDate)
                 {
@@ -87,7 +87,7 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
-                DateTime minAllowedDate = await GetMinAllowedDateAsync();
+                DateTime minAllowedDate = await GetMinAllowedSchedulingDateAsync();
 
                 if (model.StartDate < minAllowedDate)
                 {
@@ -138,13 +138,21 @@ namespace SWP391_ESMS.Controllers
         }
 
         [NonAction]
-        private async Task<DateTime> GetMinAllowedDateAsync()
+        private async Task<DateTime> GetMinAllowedSchedulingDateAsync()
         {
             // Retrieve the scheduling period setting
             var schedulingPeriodSetting = await _settingRepo.GetSettingByNameAsync("Scheduling Period");
-            int schedulingPeriod = Convert.ToInt32(schedulingPeriodSetting!.SettingValue);
 
-            // Calculate the minimum allowed date
+            if (schedulingPeriodSetting == null || schedulingPeriodSetting.SettingValue == null)
+            {
+                // Scheduling Period setting not found or invalid.
+                throw new InvalidOperationException("Scheduling Period setting not found or invalid.");
+            }
+
+            // Convert Scheduling Period setting to integer
+            int schedulingPeriod = Convert.ToInt32(schedulingPeriodSetting.SettingValue);
+
+            // Calculate the minimum allowed date for scheduling
             DateTime currentDate = DateTime.Now.Date;
             DateTime minAllowedDate = currentDate.AddDays(schedulingPeriod);
 

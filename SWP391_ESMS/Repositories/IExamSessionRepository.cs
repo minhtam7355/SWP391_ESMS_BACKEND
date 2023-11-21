@@ -26,7 +26,7 @@ namespace SWP391_ESMS.Repositories
 
         public Task<Boolean> RemoveTeacherFromExamSessionAsync(Guid examSessionId);
 
-        public Task<List<ExamSessionModel>?> GetExamSessionsWithoutTeacherAsync();
+        public Task<List<ExamSessionModel>?> GetExamSessionsWithoutTeacherByPeriodAsync(Guid periodId, Guid teacherId);
 
         public Task<List<ExamSessionModel>?> GetExamSessionsByTeacherAsync(Guid teacherId);
 

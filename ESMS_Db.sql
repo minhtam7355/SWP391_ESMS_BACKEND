@@ -129,10 +129,10 @@ CREATE TABLE ExamEnrollments (
     FOREIGN KEY (StudentID) REFERENCES Students(StudentID) ON DELETE CASCADE
 );
 
-CREATE TABLE ProctoringRequests (
+CREATE TABLE Requests (
     RequestID UNIQUEIDENTIFIER PRIMARY KEY,
-    RequestType VARCHAR(255), -- For example, 'Proctor' or 'Cancel Proctor'
-    RequestStatus BIT, -- Status of the request
+    RequestType VARCHAR(255), -- 'Proctor' or 'Unproctor'
+    RequestStatus BIT, -- Status of the request 'Pending', 'Approved', 'Rejected'
     RequestDate DATETIME, -- Store both date and time
     ExamSessionID UNIQUEIDENTIFIER,
     TeacherID UNIQUEIDENTIFIER,

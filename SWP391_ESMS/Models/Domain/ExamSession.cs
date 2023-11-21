@@ -31,7 +31,7 @@ public partial class ExamSession
 
     public virtual ExamPeriod? ExamPeriod { get; set; }
 
-    public virtual ICollection<ProctoringRequest> ProctoringRequests { get; set; } = new List<ProctoringRequest>();
+    public virtual ICollection<Request> Requests { get; set; } = new List<Request>();
 
     public virtual ExamRoom? Room { get; set; }
 

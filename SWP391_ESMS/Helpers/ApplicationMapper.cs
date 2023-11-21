@@ -59,14 +59,14 @@ namespace SWP391_ESMS.Helpers
             CreateMap<Major, MajorModel>()
                 .ReverseMap();
 
-            CreateMap<ProctoringRequest, ProctoringRequestModel>()
+            CreateMap<Request, RequestModel>()
                 .ForMember(dest => dest.ExamPeriodName, opt => opt.MapFrom(src => src.ExamSession!.ExamPeriod!.ExamPeriodName))
                 .ForMember(dest => dest.CourseName, opt => opt.MapFrom(src => src.ExamSession!.Course!.CourseName))
                 .ForMember(dest => dest.ExamDate, opt => opt.MapFrom(src => src.ExamSession!.ExamDate))
                 .ForMember(dest => dest.ShiftName, opt => opt.MapFrom(src => src.ExamSession!.Shift!.ShiftName))
                 .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src => src.Teacher!.FullName));
 
-            CreateMap<ProctoringRequestModel, ProctoringRequest>();
+            CreateMap<RequestModel, Request>();
 
             CreateMap<Staff, StaffModel>()
                 .ReverseMap();
