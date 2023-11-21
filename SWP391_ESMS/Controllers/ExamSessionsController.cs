@@ -87,13 +87,6 @@ namespace SWP391_ESMS.Controllers
                     return BadRequest("Authentication token is invalid or missing");
                 }
 
-                DateTime minAllowedDate = await GetMinAllowedDateAsync();
-
-                if (model.ExamDate < minAllowedDate)
-                {
-                    return BadRequest($"The exam date '{String.Format("{0:dd/MM/yyyy}", model.ExamDate)}' is not allowed. Exams can be scheduled starting from '{minAllowedDate.ToString("dd/MM/yyyy")}'");
-                }
-
                 bool result = await _examRepo.AddExamSessionAsync(model);
 
                 if (result)
@@ -116,13 +109,6 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
-                DateTime minAllowedDate = await GetMinAllowedDateAsync();
-
-                if (model.ExamDate < minAllowedDate)
-                {
-                    return BadRequest($"The exam date '{String.Format("{0:dd/MM/yyyy}", model.ExamDate)}' is not allowed. Exams can be scheduled starting from '{minAllowedDate.ToString("dd/MM/yyyy")}'");
-                }
-
                 bool result = await _examRepo.UpdateExamSessionAsync(model);
 
                 if (result)
@@ -494,18 +480,5 @@ namespace SWP391_ESMS.Controllers
         //    return dt.DefaultView.ToTable();
         //}
 
-        [NonAction]
-        private async Task<DateTime> GetMinAllowedDateAsync()
-        {
-            // Retrieve the scheduling period setting
-            var schedulingPeriodSetting = await _settingRepo.GetSettingByNameAsync("Scheduling Period");
-            int schedulingPeriod = Convert.ToInt32(schedulingPeriodSetting!.SettingValue);
-
-            // Calculate the minimum allowed date
-            DateTime currentDate = DateTime.Now.Date;
-            DateTime minAllowedDate = currentDate.AddDays(schedulingPeriod);
-
-            return minAllowedDate;
-        }
     }
 }
