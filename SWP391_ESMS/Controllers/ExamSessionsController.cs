@@ -249,12 +249,27 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpGet("getexamsessionswithoutteacher")]
-        public async Task<IActionResult> GetExamSessionsWithoutTeacher()
+        [HttpGet("getexamsessionswithoutteacherbyperiod/{periodId}")]
+        public async Task<IActionResult> GetExamSessionsWithoutTeacherByPeriod([FromRoute] Guid periodId)
         {
             try
             {
-                return Ok(await _examRepo.GetExamSessionsWithoutTeacherAsync());
+                Guid teacherId;
+                var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+                if (securityToken != null)
+                {
+                    var sidClaim = securityToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Sid);
+                    if (sidClaim != null && Guid.TryParse(sidClaim.Value, out Guid userId)) teacherId = userId;
+                    else return BadRequest("Unable to establish a link with the Staff ID");
+                }
+                else
+                {
+                    return BadRequest("Authentication token is invalid or missing");
+                }
+
+                return Ok(await _examRepo.GetExamSessionsWithoutTeacherByPeriodAsync(periodId, teacherId));
             }
             catch (Exception ex)
             {
