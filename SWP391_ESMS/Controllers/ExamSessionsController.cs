@@ -18,10 +18,11 @@ namespace SWP391_ESMS.Controllers
     public class ExamSessionsController : ControllerBase
     {
         private readonly IExamSessionRepository _examRepo;
+        private readonly IExamPeriodRepository _periodRepo;
         private readonly ICourseRepository _courseRepo;
         private readonly IConfigurationSettingRepository _settingRepo;
 
-        public ExamSessionsController(IExamSessionRepository examRepo, ICourseRepository courseRepo, IConfigurationSettingRepository settingRepo)
+        public ExamSessionsController(IExamSessionRepository examRepo, IExamPeriodRepository periodRepo, ICourseRepository courseRepo, IConfigurationSettingRepository settingRepo)
         {
             _examRepo = examRepo;
             _courseRepo = courseRepo;
@@ -85,6 +86,13 @@ namespace SWP391_ESMS.Controllers
                 else
                 {
                     return BadRequest("Authentication token is invalid or missing");
+                }
+
+                DateTime minAllowedDate = await GetMinAllowedSchedulingDateAsync();
+
+                if (model.ExamDate < minAllowedDate)
+                {
+                    return BadRequest($"The exam date '{String.Format("{0:dd/MM/yyyy}", model.ExamDate)}' is not allowed. Exams can be scheduled starting from '{minAllowedDate.ToString("dd/MM/yyyy")}'");
                 }
 
                 bool result = await _examRepo.AddExamSessionAsync(model);
@@ -495,5 +503,26 @@ namespace SWP391_ESMS.Controllers
         //    return dt.DefaultView.ToTable();
         //}
 
+        [NonAction]
+        private async Task<DateTime> GetMinAllowedSchedulingDateAsync()
+        {
+            // Retrieve the scheduling period setting
+            var schedulingPeriodSetting = await _settingRepo.GetSettingByNameAsync("Scheduling Period");
+
+            if (schedulingPeriodSetting == null || schedulingPeriodSetting.SettingValue == null)
+            {
+                // Scheduling Period setting not found or invalid.
+                throw new InvalidOperationException("Scheduling Period setting not found or invalid.");
+            }
+
+            // Convert Scheduling Period setting to integer
+            int schedulingPeriod = Convert.ToInt32(schedulingPeriodSetting.SettingValue);
+
+            // Calculate the minimum allowed date for scheduling
+            DateTime currentDate = DateTime.Now.Date;
+            DateTime minAllowedDate = currentDate.AddDays(schedulingPeriod);
+
+            return minAllowedDate;
+        }
     }
 }

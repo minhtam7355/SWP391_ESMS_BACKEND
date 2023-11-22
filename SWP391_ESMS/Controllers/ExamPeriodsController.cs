@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
@@ -14,11 +16,13 @@ namespace SWP391_ESMS.Controllers
     public class ExamPeriodsController : ControllerBase
     {
         private readonly IExamPeriodRepository _periodRepo;
+        private readonly IExamSessionRepository _examRepo;
         private readonly IConfigurationSettingRepository _settingRepo;
 
-        public ExamPeriodsController(IExamPeriodRepository periodRepo, IConfigurationSettingRepository settingRepo)
+        public ExamPeriodsController(IExamPeriodRepository periodRepo, IExamSessionRepository examRepo, IConfigurationSettingRepository settingRepo)
         {
             _periodRepo = periodRepo;
+            _examRepo = examRepo;
             _settingRepo = settingRepo;
         }
 
@@ -54,11 +58,9 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
-                DateTime minAllowedDate = await GetMinAllowedSchedulingDateAsync();
-
-                if (model.StartDate < minAllowedDate)
+                if (model.StartDate <= DateTime.Now.Date)
                 {
-                    return BadRequest($"The exam period start date '{String.Format("{0:dd/MM/yyyy}", model.StartDate)}' is not allowed. Exam period start date can be scheduled starting from '{minAllowedDate.ToString("dd/MM/yyyy")}'");
+                    return BadRequest($"The exam period start date '{String.Format("{0:dd/MM/yyyy}", model.StartDate)}' is not allowed. Exam period start date can be scheduled starting from '{String.Format("{0:dd/MM/yyyy}", Convert.ToDateTime(model.StartDate).AddDays(1))}'");
                 }
                 if (model.EndDate <= model.StartDate)
                 {
@@ -87,17 +89,43 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
-                DateTime minAllowedDate = await GetMinAllowedSchedulingDateAsync();
-
-                if (model.StartDate < minAllowedDate)
+                var examPeriod = await _periodRepo.GetExamPeriodByIdAsync(model.ExamPeriodId);
+                if (examPeriod == null)
                 {
-                    return BadRequest($"The exam period start date '{String.Format("{0:dd/MM/yyyy}", model.StartDate)}' is not allowed. Exam period start date can be scheduled starting from '{minAllowedDate.ToString("dd/MM/yyyy")}'");
+                    return NotFound();
                 }
-                if (model.EndDate <= model.StartDate)
+                if (model.StartDate != examPeriod.StartDate)
                 {
-                    return BadRequest($"The exam period end date '{String.Format("{0:dd/MM/yyyy}", model.EndDate)}' is not allowed. Exam period end date can not be before or the same as the start date '{String.Format("{0:dd/MM/yyyy}", model.StartDate)}'");
-                }
+                    if (model.StartDate >= model.EndDate)
+                    {
+                        return BadRequest();
+                    }
 
+                    var examSessions = await _examRepo.GetExamSessionsByPeriodAsync(model.ExamPeriodId);
+                    foreach (var examSession in examSessions)
+                    {
+                        if (examSession.ExamDate < model.StartDate)
+                        {
+                            return BadRequest();
+                        }
+                    }
+                }
+                if (model.EndDate != examPeriod.EndDate)
+                {
+                    if (model.EndDate <= model.StartDate)
+                    {
+                        return BadRequest();
+                    }
+
+                    var examSessions = await _examRepo.GetExamSessionsByPeriodAsync(model.ExamPeriodId);
+                    foreach (var examSession in examSessions)
+                    {
+                        if (examSession.ExamDate > model.EndDate)
+                        {
+                            return BadRequest();
+                        }
+                    }
+                }
                 bool result = await _periodRepo.UpdateExamPeriodAsync(model);
 
                 if (result)
@@ -137,26 +165,5 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [NonAction]
-        private async Task<DateTime> GetMinAllowedSchedulingDateAsync()
-        {
-            // Retrieve the scheduling period setting
-            var schedulingPeriodSetting = await _settingRepo.GetSettingByNameAsync("Scheduling Period");
-
-            if (schedulingPeriodSetting == null || schedulingPeriodSetting.SettingValue == null)
-            {
-                // Scheduling Period setting not found or invalid.
-                throw new InvalidOperationException("Scheduling Period setting not found or invalid.");
-            }
-
-            // Convert Scheduling Period setting to integer
-            int schedulingPeriod = Convert.ToInt32(schedulingPeriodSetting.SettingValue);
-
-            // Calculate the minimum allowed date for scheduling
-            DateTime currentDate = DateTime.Now.Date;
-            DateTime minAllowedDate = currentDate.AddDays(schedulingPeriod);
-
-            return minAllowedDate;
-        }
     }
 }
