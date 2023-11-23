@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using ExcelDataReader;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +26,7 @@ namespace SWP391_ESMS.Controllers
         public ExamSessionsController(IExamSessionRepository examRepo, IExamPeriodRepository periodRepo, ICourseRepository courseRepo, IConfigurationSettingRepository settingRepo)
         {
             _examRepo = examRepo;
+            _periodRepo = periodRepo;
             _courseRepo = courseRepo;
             _settingRepo = settingRepo;
         }
@@ -88,6 +90,13 @@ namespace SWP391_ESMS.Controllers
                     return BadRequest("Authentication token is invalid or missing");
                 }
 
+                var examSession = await _examRepo.GetExamSessionByIdAsync(model.ExamSessionId);
+                var examPeriod = await _periodRepo.GetExamPeriodByIdAsync(examSession.ExamPeriodId ?? Guid.Empty);
+                if (model.ExamDate < examPeriod!.StartDate || model.ExamDate > examPeriod!.EndDate)
+                {
+                    return BadRequest($"The exam date '{String.Format("{0:dd/MM/yyyy}", model.ExamDate)}' is not allowed. Exams can be scheduled starting from '{String.Format("{0:dd/MM/yyyy}", examPeriod.StartDate)}' and end at '{String.Format("{0:dd/MM/yyyy}", examPeriod.EndDate)}'");
+                }
+
                 DateTime minAllowedDate = await GetMinAllowedSchedulingDateAsync();
 
                 if (model.ExamDate < minAllowedDate)
@@ -117,6 +126,31 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
+                var examSession = await _examRepo.GetExamSessionByIdAsync(model.ExamSessionId);
+                var examPeriod = await _periodRepo.GetExamPeriodByIdAsync(examSession.ExamPeriodId ?? Guid.Empty);
+                if (model.ExamDate != examSession.ExamDate)
+                {
+                    // Check if the ExamDate is today.
+                    if (model.ExamDate <= DateTime.Today)
+                    {
+                        return BadRequest(); // Do not allow to update exam session on the day of the exam.
+                    }
+
+                    if (model.ExamDate < examPeriod.StartDate || model.ExamDate > examPeriod.EndDate)
+                    {
+                        return BadRequest();
+                    }
+
+                }
+                if (model.ExamDate !=  examSession.ExamDate || model.ShiftId != examSession.ShiftId || model.RoomId != examSession.RoomId)
+                {
+                    bool isAvailable = await _examRepo.IsExamSessionAvailableAsync(model.ExamDate, model.ShiftId, model.RoomId);
+                    if (!isAvailable)
+                    {
+                        return BadRequest("The specified exam session already exists.");
+                    }
+                }
+
                 bool result = await _examRepo.UpdateExamSessionAsync(model);
 
                 if (result)

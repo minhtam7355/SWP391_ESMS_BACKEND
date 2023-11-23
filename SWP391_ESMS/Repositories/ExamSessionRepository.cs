@@ -23,12 +23,6 @@ namespace SWP391_ESMS.Repositories
         {
             try
             {
-                var examPeriod = await _dbContext.ExamPeriods.FirstOrDefaultAsync(ep => ep.ExamPeriodId == model.ExamPeriodId);
-                if (model.ExamDate < examPeriod!.StartDate || model.ExamDate > examPeriod!.EndDate)
-                {
-                    return false;
-                }
-
                 // Fetch students who are taking the specified course and meet the following criteria:
                 // They have no active exam sessions for the same course and format.
                 var students = await _dbContext.Courses
@@ -481,6 +475,25 @@ namespace SWP391_ESMS.Repositories
             }
         }
 
+        public async Task<bool> IsExamSessionAvailableAsync(DateTime? examDate, Guid? shiftId, Guid? roomId)
+        {
+            try
+            {
+                // Check if there is any existing exam session with the specified ExamDate, ShiftId, and RoomId
+                bool isAvailable = !await _dbContext.ExamSessions
+                    .AnyAsync(es =>
+                        es.ExamDate == examDate &&
+                        es.ShiftId == shiftId &&
+                        es.RoomId == roomId);
+
+                return isAvailable;
+            }
+            catch (Exception)
+            {
+                return false; // Error occurred during the process.
+            }
+        }
+
         public async Task<bool> RemoveStudentFromExamSessionAsync(Guid examSessionId, Guid studentId)
         {
             try
@@ -548,17 +561,6 @@ namespace SWP391_ESMS.Repositories
 
             if (existingExamSession != null)
             {
-                // Check if the ExamDate is today.
-                if (existingExamSession.ExamDate == DateTime.Today)
-                {
-                    return false; // Do not allow to update exam session on the day of the exam.
-                }
-
-                if (model.ExamDate < existingExamSession.ExamPeriod!.StartDate || model.ExamDate > existingExamSession.ExamPeriod!.EndDate)
-                {
-                    return false;
-                }
-
                 _mapper.Map(model, existingExamSession);
 
                 if (existingExamSession.ExamDate < DateTime.Now.Date)

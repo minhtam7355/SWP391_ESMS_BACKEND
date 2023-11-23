@@ -35,5 +35,7 @@ namespace SWP391_ESMS.Repositories
         public Task<List<int>> GetNumberOfExamsHeldMonthlyAsync();
 
         public Task<List<int>> GetNumberOfStudentsExaminedMonthlyAsync();
+
+        public Task<Boolean> IsExamSessionAvailableAsync(DateTime? examDate, Guid? shiftId, Guid? roomId);
     }
 }
