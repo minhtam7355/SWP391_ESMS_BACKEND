@@ -15,5 +15,7 @@ namespace SWP391_ESMS.Repositories
         public Task<Boolean> DeleteExamRoomAsync(Guid id);
 
         public Task<Guid> GetExamRoomIdByName(string roomName);
+
+        public Task<Boolean> GetAvailableRoomsAsync(DateTime? examDate, Guid? shiftId);
     }
 }

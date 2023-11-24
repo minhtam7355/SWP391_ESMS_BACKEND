@@ -1,12 +1,7 @@
-﻿using DocumentFormat.OpenXml.Drawing.Charts;
-using DocumentFormat.OpenXml.Office2010.Excel;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace SWP391_ESMS.Controllers
 {
@@ -17,13 +12,11 @@ namespace SWP391_ESMS.Controllers
     {
         private readonly IExamPeriodRepository _periodRepo;
         private readonly IExamSessionRepository _examRepo;
-        private readonly IConfigurationSettingRepository _settingRepo;
 
-        public ExamPeriodsController(IExamPeriodRepository periodRepo, IExamSessionRepository examRepo, IConfigurationSettingRepository settingRepo)
+        public ExamPeriodsController(IExamPeriodRepository periodRepo, IExamSessionRepository examRepo)
         {
             _periodRepo = periodRepo;
             _examRepo = examRepo;
-            _settingRepo = settingRepo;
         }
 
         [HttpGet("getall")]
@@ -58,6 +51,11 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
+                bool isNameUnique = await _periodRepo.IsExamPeriodNameUniqueAsync(model.ExamPeriodName!);
+                if (!isNameUnique)
+                {
+                    return BadRequest($"The exam period name '{model.ExamPeriodName}' already exists. Please choose a unique name");
+                }
                 if (model.StartDate <= DateTime.Now.Date)
                 {
                     return BadRequest($"The exam period start date '{String.Format("{0:dd/MM/yyyy}", model.StartDate)}' is not allowed. Exam period start date can be scheduled starting from '{String.Format("{0:dd/MM/yyyy}", Convert.ToDateTime(model.StartDate).AddDays(1))}'");
@@ -94,11 +92,19 @@ namespace SWP391_ESMS.Controllers
                 {
                     return NotFound();
                 }
+                if (model.ExamPeriodName != examPeriod.ExamPeriodName)
+                {
+                    bool isNameUnique = await _periodRepo.IsExamPeriodNameUniqueAsync(model.ExamPeriodName!);
+                    if (!isNameUnique)
+                    {
+                        return BadRequest($"The exam period name '{model.ExamPeriodName}' already exists. Please choose a unique name");
+                    }
+                }
                 if (model.StartDate != examPeriod.StartDate)
                 {
                     if (model.StartDate >= model.EndDate)
                     {
-                        return BadRequest();
+                        return BadRequest("Failed to update the exam period. The new start date must be before the end date");
                     }
 
                     var examSessions = await _examRepo.GetExamSessionsByPeriodAsync(model.ExamPeriodId);
@@ -106,7 +112,7 @@ namespace SWP391_ESMS.Controllers
                     {
                         if (examSession.ExamDate < model.StartDate)
                         {
-                            return BadRequest();
+                            return BadRequest("Failed to update the exam period. Some exam sessions are scheduled before the new start date");
                         }
                     }
                 }
@@ -114,7 +120,7 @@ namespace SWP391_ESMS.Controllers
                 {
                     if (model.EndDate <= model.StartDate)
                     {
-                        return BadRequest();
+                        return BadRequest("Failed to update the exam period. The new end date must be after the start date");
                     }
 
                     var examSessions = await _examRepo.GetExamSessionsByPeriodAsync(model.ExamPeriodId);
@@ -122,7 +128,7 @@ namespace SWP391_ESMS.Controllers
                     {
                         if (examSession.ExamDate > model.EndDate)
                         {
-                            return BadRequest();
+                            return BadRequest("Failed to update the exam period. Some exam sessions are scheduled after the new end date");
                         }
                     }
                 }
@@ -134,7 +140,7 @@ namespace SWP391_ESMS.Controllers
                 }
                 else
                 {
-                    return BadRequest("Failed to update the exam period because there exist an exam session outside of the updated exam period");
+                    return BadRequest("Failed to update the exam period");
                 }
             }
             catch (Exception ex)

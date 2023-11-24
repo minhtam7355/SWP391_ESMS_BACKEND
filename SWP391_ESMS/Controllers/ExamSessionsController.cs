@@ -130,15 +130,14 @@ namespace SWP391_ESMS.Controllers
                 var examPeriod = await _periodRepo.GetExamPeriodByIdAsync(examSession.ExamPeriodId ?? Guid.Empty);
                 if (model.ExamDate != examSession.ExamDate)
                 {
-                    // Check if the ExamDate is today.
                     if (model.ExamDate <= DateTime.Today)
                     {
-                        return BadRequest(); // Do not allow to update exam session on the day of the exam.
+                        return BadRequest("Failed to update the exam session. Exam sessions cannot be updated to today or in the past. Please provide a valid future date");
                     }
 
                     if (model.ExamDate < examPeriod.StartDate || model.ExamDate > examPeriod.EndDate)
                     {
-                        return BadRequest();
+                        return BadRequest("Failed to update the exam session. The new exam date is outside the period of the associated exam period");
                     }
 
                 }
@@ -147,7 +146,7 @@ namespace SWP391_ESMS.Controllers
                     bool isAvailable = await _examRepo.IsExamSessionAvailableAsync(model.ExamDate, model.ShiftId, model.RoomId);
                     if (!isAvailable)
                     {
-                        return BadRequest("The specified exam session already exists.");
+                        return BadRequest("Failed to update the exam session. The specified exam session conflicts with an existing session");
                     }
                 }
 

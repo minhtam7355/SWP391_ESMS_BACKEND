@@ -58,19 +58,21 @@ namespace SWP391_ESMS.Repositories
             return _mapper.Map<ExamPeriodModel>(examPeriod);
         }
 
+        public async Task<bool> IsExamPeriodNameUniqueAsync(string examPeriodName)
+        {
+            // Check if there is any existing exam period with the same name
+            var existingExamPeriod = await _dbContext.ExamPeriods
+                .FirstOrDefaultAsync(ep => ep.ExamPeriodName == examPeriodName);
+
+            return existingExamPeriod == null;
+        }
+
         public async Task<bool> UpdateExamPeriodAsync(ExamPeriodModel model)
         {
             var existingExamPeriod = await _dbContext.ExamPeriods.FindAsync(model.ExamPeriodId);
 
             if (existingExamPeriod != null)
-            {
-                foreach (var examSession in existingExamPeriod.ExamSessions)
-                {
-                    if (examSession.ExamDate < model.StartDate || examSession.ExamDate > model.EndDate)
-                    {
-                        return false;
-                    }
-                }
+            {               
                 _mapper.Map(model, existingExamPeriod);
                 await _dbContext.SaveChangesAsync();
                 return true;

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SWP391_ESMS.Data;
 using SWP391_ESMS.Models.Domain;
 using SWP391_ESMS.Models.ViewModels;
+using System.Linq;
 
 namespace SWP391_ESMS.Repositories
 {
@@ -55,6 +56,30 @@ namespace SWP391_ESMS.Repositories
         {
             var rooms = await _dbContext.ExamRooms.ToListAsync();
             return _mapper.Map<List<ExamRoomModel>>(rooms);
+        }
+
+        public async Task<Boolean> GetAvailableRoomsAsync(DateTime? examDate, Guid? shiftId)
+        {
+            try
+            {
+                
+                var occupiedRooms = await _dbContext.ExamSessions
+                    .Where(es => es.ExamDate == examDate && es.ShiftId == shiftId && es.RoomId != null)
+                    .Select(es => es.Room)
+                    .ToListAsync();
+
+                
+                var allRooms = await _dbContext.ExamRooms.ToListAsync();
+
+                
+                var availableRooms = allRooms.Except(occupiedRooms);
+
+                return availableRooms.Any();
+            }
+            catch (Exception)
+            {
+                return false; 
+            }
         }
 
         public async Task<ExamRoomModel> GetExamRoomByIdAsync(Guid id)

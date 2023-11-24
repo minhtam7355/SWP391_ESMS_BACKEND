@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SWP391_ESMS.Models.Domain;
 using SWP391_ESMS.Repositories;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -13,12 +14,14 @@ namespace SWP391_ESMS.Controllers
     {
         private readonly IRequestRepository _requestRepo;
         private readonly IExamSessionRepository _examRepo;
+        private readonly IExamRoomRepository _roomRepo;
         private readonly IConfigurationSettingRepository _settingRepo;
 
-        public RequestsController(IRequestRepository requestRepo, IExamSessionRepository examRepo, IConfigurationSettingRepository settingRepo)
+        public RequestsController(IRequestRepository requestRepo, IExamSessionRepository examRepo, IExamRoomRepository roomRepo, IConfigurationSettingRepository settingRepo)
         {
             _requestRepo = requestRepo;
             _examRepo = examRepo;
+            _roomRepo = roomRepo;
             _settingRepo = settingRepo;
         }
 
@@ -217,6 +220,15 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
+                var request = await _requestRepo.GetRequestByIdAsync(id);
+                var examSession = await _examRepo.GetExamSessionByIdAsync(request.ExamSessionId ?? Guid.Empty);
+                bool areAvailableRooms = await _roomRepo.GetAvailableRoomsAsync(examSession.ExamDate, examSession.ShiftId);
+
+                if (!areAvailableRooms)
+                {
+                    return BadRequest("No available rooms for the proctoring request");
+                }
+
                 bool result = await _requestRepo.ApproveProctoringRequestAsync(id);
                 if (result)
                 {

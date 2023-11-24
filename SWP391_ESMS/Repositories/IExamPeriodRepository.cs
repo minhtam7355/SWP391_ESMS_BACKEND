@@ -13,5 +13,7 @@ namespace SWP391_ESMS.Repositories
         public Task<Boolean> UpdateExamPeriodAsync(ExamPeriodModel model);
 
         public Task<Boolean> DeleteExamPeriodAsync(Guid id);
+
+        public Task<Boolean> IsExamPeriodNameUniqueAsync(string examPeriodName);
     }
 }
