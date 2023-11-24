@@ -21,13 +21,15 @@ namespace SWP391_ESMS.Controllers
         private readonly IExamSessionRepository _examRepo;
         private readonly IExamPeriodRepository _periodRepo;
         private readonly ICourseRepository _courseRepo;
+        private readonly IExamFormatRepository _formatRepo;
         private readonly IConfigurationSettingRepository _settingRepo;
 
-        public ExamSessionsController(IExamSessionRepository examRepo, IExamPeriodRepository periodRepo, ICourseRepository courseRepo, IConfigurationSettingRepository settingRepo)
+        public ExamSessionsController(IExamSessionRepository examRepo, IExamPeriodRepository periodRepo, ICourseRepository courseRepo, IExamFormatRepository formatRepo, IConfigurationSettingRepository settingRepo)
         {
             _examRepo = examRepo;
             _periodRepo = periodRepo;
             _courseRepo = courseRepo;
+            _formatRepo = formatRepo;
             _settingRepo = settingRepo;
         }
 
@@ -331,26 +333,26 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        //[HttpGet("exportexcel")]
-        //public async Task<IActionResult> ExportExcel()
-        //{
-        //    var examSessionsData = await GetAllExamSessionsData();
-        //    using (XLWorkbook wb = new XLWorkbook())
-        //    {
-        //        var ws = wb.AddWorksheet(examSessionsData, "Exam Session Records");
+        [HttpGet("exportexcel")]
+        public async Task<IActionResult> ExportExcel()
+        {
+            var examSessionsData = await GetAllExamSessionsData();
+            using (XLWorkbook wb = new XLWorkbook())
+            {
+                var ws = wb.AddWorksheet(examSessionsData, "Exam Session Records");
 
-        //        for (int i = 1; i <= examSessionsData.Columns.Count; i++)
-        //        {
-        //            ws.Column(i).AdjustToContents();
-        //        }
+                for (int i = 1; i <= examSessionsData.Columns.Count; i++)
+                {
+                    ws.Column(i).AdjustToContents();
+                }
 
-        //        using (MemoryStream ms = new MemoryStream())
-        //        {
-        //            wb.SaveAs(ms);
-        //            return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ExamSessions.xlsx");
-        //        }
-        //    }
-        //}
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    wb.SaveAs(ms);
+                    return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ExamSessions.xlsx");
+                }
+            }
+        }
 
         //[HttpPost("uploadexcel")]
         //public async Task<IActionResult> UploadExcel(IFormFile file)
@@ -358,7 +360,8 @@ namespace SWP391_ESMS.Controllers
         //    // Initialize user ID, message, and minimum allowed date
         //    Guid userId = Guid.Empty;
         //    string msg = "";
-        //    DateTime minAllowedDate = await GetMinAllowedDateAsync();
+        //    DateTime minAllowedDate = await GetMinAllowedSchedulingDateAsync();
+        //    var examFormats = await _formatRepo.GetAllExamFormatsAsync();
 
         //    // Extract the user's authentication token
         //    var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
@@ -502,39 +505,39 @@ namespace SWP391_ESMS.Controllers
         //    return BadRequest("The uploaded file is empty");
         //}
 
-        //// Helper
-        //[NonAction]
-        //private async Task<DataTable> GetAllExamSessionsData()
-        //{
-        //    DataTable dt = new DataTable();
-        //    dt.TableName = "ExamSessionsData";
-        //    dt.Columns.Add("ExamSessionId", typeof(Guid));
-        //    dt.Columns.Add("CourseName", typeof(string));
-        //    dt.Columns.Add("ExamFormat", typeof(string));
-        //    dt.Columns.Add("ExamDate", typeof(string));
-        //    dt.Columns.Add("ShiftName", typeof(string));
-        //    dt.Columns.Add("StartTime", typeof(TimeSpan));
-        //    dt.Columns.Add("EndTime", typeof(TimeSpan));
-        //    dt.Columns.Add("RoomName", typeof(string));
-        //    dt.Columns.Add("StudentsEnrolled", typeof(int));
-        //    dt.Columns.Add("TeacherName", typeof(string));
-        //    dt.Columns.Add("StaffName", typeof(string));
-        //    dt.Columns.Add("IsPassed", typeof(bool));
-        //    dt.Columns.Add("IsPaid", typeof(bool));
+        // Helper
+        [NonAction]
+        private async Task<DataTable> GetAllExamSessionsData()
+        {
+            DataTable dt = new DataTable();
+            dt.TableName = "ExamSessionsData";
+            dt.Columns.Add("ExamSessionId", typeof(Guid));
+            dt.Columns.Add("CourseName", typeof(string));
+            dt.Columns.Add("ExamPeriodName", typeof(string));
+            dt.Columns.Add("ExamFormatCode", typeof(string));
+            dt.Columns.Add("ExamFormatName", typeof(string));
+            dt.Columns.Add("ExamDate", typeof(string));
+            dt.Columns.Add("ShiftName", typeof(string));
+            dt.Columns.Add("RoomName", typeof(string));
+            dt.Columns.Add("StudentsEnrolled", typeof(int));
+            dt.Columns.Add("TeacherName", typeof(string));
+            dt.Columns.Add("StaffName", typeof(string));
+            dt.Columns.Add("IsPassed", typeof(bool));
+            dt.Columns.Add("IsPaid", typeof(bool));
 
-        //    var examSessions = await _examRepo.GetAllExamSessionsAsync();
-        //    if (examSessions.Count > 0)
-        //    {
-        //        foreach (var item in examSessions)
-        //        {
-        //            string formattedExamDate = String.Format("{0:dd/MM/yyyy}", item.ExamDate);
-        //            dt.Rows.Add(item.ExamSessionId, item.CourseName, item.ExamFormat, formattedExamDate, item.ShiftName, item.StartTime, item.EndTime, item.RoomName, item.StudentsEnrolled, item.TeacherName, item.StaffName, item.IsPassed, item.IsPaid);
-        //        }
-        //    }
+            var examSessions = await _examRepo.GetAllExamSessionsAsync();
+            if (examSessions.Count > 0)
+            {
+                foreach (var exam in examSessions)
+                {
+                    string formattedExamDate = String.Format("{0:dd/MM/yyyy}", exam.ExamDate);
+                    dt.Rows.Add(exam.ExamSessionId, exam.CourseName, exam.ExamPeriodName, exam.ExamFormatCode, exam.ExamFormatName, formattedExamDate, exam.ShiftName, exam.RoomName, exam.StudentsEnrolled, exam.TeacherName, exam.StaffName, exam.IsPassed, exam.IsPaid);
+                }
+            }
 
-        //    dt.DefaultView.Sort = "ExamDate DESC, EndTime ASC";
-        //    return dt.DefaultView.ToTable();
-        //}
+            dt.DefaultView.Sort = "ExamDate DESC, ShiftName ASC";
+            return dt.DefaultView.ToTable();
+        }
 
         [NonAction]
         private async Task<DateTime> GetMinAllowedSchedulingDateAsync()
