@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using SWP391_ESMS.Data;
-using SWP391_ESMS.Models.Domain;
 using SWP391_ESMS.Models.ViewModels;
 
 namespace SWP391_ESMS.Repositories

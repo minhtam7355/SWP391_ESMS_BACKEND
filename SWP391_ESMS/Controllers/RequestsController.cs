@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SWP391_ESMS.Models.Domain;
 using SWP391_ESMS.Repositories;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
