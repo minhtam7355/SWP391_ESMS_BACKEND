@@ -207,7 +207,8 @@ namespace SWP391_ESMS.Controllers
             Response += $"<p>We would like to inform you that you have been assigned to proctor the upcoming exam on {formattedExamDate}. Your role as a proctor is crucial for a smooth and fair examination process.</p>";
             Response += "<strong>Exam Details:</strong>";
             Response += "<ul>";
-            Response += $"<li>Course Name: {examSession.CourseName}</li>";
+            Response += $"<li>Period: {examSession.ExamPeriodName}</li>";
+            Response += $"<li>Course: {examSession.CourseName}</li>";
             Response += $"<li>Exam Format: {examSession.ExamFormatCode} - {examSession.ExamFormatName}</li>";
             Response += $"<li>Exam Date and Time: {formattedExamDate}, {examSession.ShiftName}</li>";
             Response += $"<li>Exam Location: {examSession.RoomName}</li>";

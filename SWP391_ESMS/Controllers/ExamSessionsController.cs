@@ -1,11 +1,15 @@
 ﻿using ClosedXML.Excel;
+using ExcelDataReader;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_ESMS.Models.ViewModels;
 using SWP391_ESMS.Repositories;
 using System.Data;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
+using System.Text;
 
 namespace SWP391_ESMS.Controllers
 {
@@ -17,15 +21,15 @@ namespace SWP391_ESMS.Controllers
         private readonly IExamSessionRepository _examRepo;
         private readonly IExamPeriodRepository _periodRepo;
         private readonly ICourseRepository _courseRepo;
-        private readonly IExamFormatRepository _formatRepo;
+        private readonly IExamShiftRepository _shiftRepo;
         private readonly IConfigurationSettingRepository _settingRepo;
 
-        public ExamSessionsController(IExamSessionRepository examRepo, IExamPeriodRepository periodRepo, ICourseRepository courseRepo, IExamFormatRepository formatRepo, IConfigurationSettingRepository settingRepo)
+        public ExamSessionsController(IExamSessionRepository examRepo, IExamPeriodRepository periodRepo, ICourseRepository courseRepo, IExamShiftRepository shiftRepo, IConfigurationSettingRepository settingRepo)
         {
             _examRepo = examRepo;
             _periodRepo = periodRepo;
             _courseRepo = courseRepo;
-            _formatRepo = formatRepo;
+            _shiftRepo = shiftRepo;
             _settingRepo = settingRepo;
         }
 
@@ -136,7 +140,7 @@ namespace SWP391_ESMS.Controllers
                     }
 
                 }
-                if (model.ExamDate !=  examSession.ExamDate || model.ShiftId != examSession.ShiftId || model.RoomId != examSession.RoomId)
+                if (model.ExamDate != examSession.ExamDate || model.ShiftId != examSession.ShiftId || model.RoomId != examSession.RoomId)
                 {
                     bool isAvailable = await _examRepo.IsExamSessionAvailableAsync(model.ExamDate, model.ShiftId, model.RoomId);
                     if (!isAvailable)
@@ -326,10 +330,10 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        [HttpGet("exportexcel")]
-        public async Task<IActionResult> ExportExcel()
+        [HttpGet("exportexcel/{periodId}")]
+        public async Task<IActionResult> ExportExcel([FromRoute] Guid periodId)
         {
-            var examSessionsData = await GetAllExamSessionsData();
+            var examSessionsData = await GetAllExamSessionsData(periodId);
             using (XLWorkbook wb = new XLWorkbook())
             {
                 var ws = wb.AddWorksheet(examSessionsData, "Exam Session Records");
@@ -347,160 +351,176 @@ namespace SWP391_ESMS.Controllers
             }
         }
 
-        //[HttpPost("uploadexcel")]
-        //public async Task<IActionResult> UploadExcel(IFormFile file)
-        //{
-        //    // Initialize user ID, message, and minimum allowed date
-        //    Guid userId = Guid.Empty;
-        //    string msg = "";
-        //    DateTime minAllowedDate = await GetMinAllowedSchedulingDateAsync();
-        //    var examFormats = await _formatRepo.GetAllExamFormatsAsync();
+        [HttpPost("uploadexcel/{periodId}")]
+        public async Task<IActionResult> UploadExcel([FromRoute] Guid periodId, IFormFile file)
+        {
+            // Initialize user ID, message, and minimum allowed date
+            Guid userId = Guid.Empty;
+            string msg = "";
+            DateTime minAllowedDate = await GetMinAllowedSchedulingDateAsync();
+            var examPeriod = await _periodRepo.GetExamPeriodByIdAsync(periodId);
+            if (minAllowedDate > examPeriod!.EndDate)
+            {
+                return BadRequest("The scheduling period for exams has ended");
+            }
+            var courses = await _courseRepo.GetCoursesByPeriodAsync(periodId);
+            List<Guid> coursesId = new List<Guid>();
+            foreach (var course in courses)
+            {
+                coursesId.Add(course.CourseId);
+            }
 
-        //    // Extract the user's authentication token
-        //    var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-        //    var tokenHandler = new JwtSecurityTokenHandler();
-        //    var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
-        //    if (securityToken != null)
-        //    {
-        //        var sidClaim = securityToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Sid);
-        //        if (sidClaim == null || !Guid.TryParse(sidClaim.Value, out userId)) return BadRequest("Unable to establish a link with the Staff ID");
-        //    }
-        //    else
-        //    {
-        //        return BadRequest("Authentication token is invalid or missing");
-        //    }
+            // Extract the user's authentication token
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+            if (securityToken != null)
+            {
+                var sidClaim = securityToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Sid);
+                if (sidClaim == null || !Guid.TryParse(sidClaim.Value, out userId)) return BadRequest("Unable to establish a link with the Staff ID");
+            }
+            else
+            {
+                return BadRequest("Authentication token is invalid or missing");
+            }
 
-        //    // Ensure the file format is correct
-        //    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            // Ensure the file format is correct
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-        //    // List to store validated exam sessions
-        //    var examSessions = new List<ExamSessionModel>();
+            // List to store validated exam sessions
+            var examSessions = new List<ExamSessionModel>();
 
-        //    if (file != null && file.Length > 0)
-        //    {
-        //        //// Define the upload folder and file path
-        //        //var uploadsFolder = $"{Directory.GetCurrentDirectory()}\\wwwroot\\Uploads\\";
+            if (file != null && file.Length > 0)
+            {
+                //// Define the upload folder and file path
+                //var uploadsFolder = $"{Directory.GetCurrentDirectory()}\\wwwroot\\Uploads\\";
 
-        //        //if (!Directory.Exists(uploadsFolder))
-        //        //{
-        //        //    Directory.CreateDirectory(uploadsFolder);
-        //        //}
+                //if (!Directory.Exists(uploadsFolder))
+                //{
+                //    Directory.CreateDirectory(uploadsFolder);
+                //}
 
-        //        //var filePath = Path.Combine(uploadsFolder, file.FileName);
+                //var filePath = Path.Combine(uploadsFolder, file.FileName);
 
-        //        //// Save the uploaded file
-        //        //using (var stream = new FileStream(filePath, FileMode.Create))
-        //        //{
-        //        //    await file.CopyToAsync(stream);
-        //        //}
+                //// Save the uploaded file
+                //using (var stream = new FileStream(filePath, FileMode.Create))
+                //{
+                //    await file.CopyToAsync(stream);
+                //}
 
-        //        // Validate the contents of the Excel file
-        //        using (var stream = new MemoryStream())
-        //        {
-        //            await file.CopyToAsync(stream);
-        //            stream.Position = 0;
+                // Validate the contents of the Excel file
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
 
-        //            using (var reader = ExcelReaderFactory.CreateReader(stream))
-        //            {
-        //                do
-        //                {
-        //                    bool isHeaderSkipped = false;
+                    using (var reader = ExcelReaderFactory.CreateReader(stream))
+                    {
+                        do
+                        {
+                            bool isHeaderSkipped = false;
 
-        //                    while (reader.Read())
-        //                    {
-        //                        // Check if there is any data in the current row
-        //                        if (reader.IsDBNull(0) && reader.IsDBNull(1) && reader.IsDBNull(2))
-        //                        {
-        //                            // Break the loop if there is no data in the current row
-        //                            break;
-        //                        }
+                            while (reader.Read())
+                            {
+                                // Check if there is any data in the current row
+                                if (reader.IsDBNull(0) && reader.IsDBNull(1) && reader.IsDBNull(2))
+                                {
+                                    // Break the loop if there is no data in the current row
+                                    break;
+                                }
 
-        //                        // Check if any of the cells is null
-        //                        if (reader.IsDBNull(0) || reader.IsDBNull(1) || reader.IsDBNull(2))
-        //                        {
-        //                            // Return BadRequest if any of the cells is null
-        //                            return BadRequest("Invalid data format. Each row should contain data in all three columns");
-        //                        }
+                                // Check if any of the cells is null
+                                if (reader.IsDBNull(0) || reader.IsDBNull(1) || reader.IsDBNull(2))
+                                {
+                                    // Return BadRequest if any of the cells is null
+                                    return BadRequest("Invalid data format. Each row should contain data in all three columns");
+                                }
 
-        //                        if (!isHeaderSkipped)
-        //                        {
-        //                            // Skip the header row
-        //                            isHeaderSkipped = true;
-        //                            continue;
-        //                        }
+                                if (!isHeaderSkipped)
+                                {
+                                    // Skip the header row
+                                    isHeaderSkipped = true;
+                                    continue;
+                                }
 
-        //                        // Initialize a new ExamSessionModel
-        //                        var examSession = new ExamSessionModel();
-        //                        examSession.StaffId = userId;
-        //                        examSession.CourseId = await _courseRepo.GetCourseIdByNameAsync(reader.GetValue(0).ToString());
-        //                        examSession.CourseName = reader.GetValue(0).ToString();
+                                // Initialize a new ExamSessionModel
+                                var examSession = new ExamSessionModel();
+                                examSession.ExamPeriodId = periodId;
+                                examSession.StaffId = userId;
+                                examSession.CourseId = await _courseRepo.GetCourseIdByNameAsync(reader.GetValue(0).ToString());
+                                examSession.CourseName = reader.GetValue(0).ToString();
 
-        //                        // Validate course existence
-        //                        if (examSession.CourseId == null)
-        //                        {
-        //                            return BadRequest($"The course '{examSession.CourseName}' doesn't exist in the database");
-        //                        }
+                                // Validate course existence
+                                if (examSession.CourseId == null)
+                                {
+                                    return BadRequest($"The course '{examSession.CourseName}' doesn't exist in the database");
+                                }
 
-        //                        examSession.ExamFormat = reader.GetValue(1).ToString();
+                                if (!coursesId.Contains((Guid)examSession.CourseId))
+                                {
+                                    return BadRequest($"The course '{examSession.CourseName}' doesn't have '{examPeriod.ExamFormatName}' format");
+                                }
 
-        //                        // Validate exam format
-        //                        if (examSession.ExamFormat != "Theory Exam" && examSession.ExamFormat != "Practical Exam")
-        //                        {
-        //                            return BadRequest($"Invalid exam format: '{examSession.ExamFormat}'. Supported formats are 'Theory Exam' and 'Practical Exam'");
-        //                        }
+                                // Validate and parse the exam date
+                                if (!DateTime.TryParseExact(reader.GetValue(1).ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime examDate))
+                                {
+                                    return BadRequest($"Invalid date format: '{reader.GetValue(1)}'. The date should be in the format 'DD/MM/YYYY'");
+                                }
 
-        //                        // Validate and parse the exam date
-        //                        if (!DateTime.TryParseExact(reader.GetValue(2).ToString(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime examDate))
-        //                        {
-        //                            return BadRequest($"Invalid date format: '{reader.GetValue(2)}'. The date should be in the format 'DD/MM/YYYY'");
-        //                        }
+                                // Check if the exam date is within the allowed scheduling period
+                                if (examDate < minAllowedDate || examDate > examPeriod!.EndDate)
+                                {
+                                    return BadRequest($"The exam date '{String.Format("{0:dd/MM/yyyy}", examDate)}' is not allowed. Exams can be scheduled starting from '{minAllowedDate.ToString("dd/MM/yyyy")}' and end at '{String.Format("{0:dd/MM/yyyy}", examPeriod.EndDate)}'");
+                                }
 
-        //                        // Check if the exam date is within the allowed scheduling period
-        //                        if (examDate < minAllowedDate)
-        //                        {
-        //                            return BadRequest($"The exam date '{examDate.ToString("dd/MM/yyyy")}' is not allowed. Exams can be scheduled starting from '{minAllowedDate.ToString("dd/MM/yyyy")}'");
-        //                        }
+                                examSession.ExamDate = examDate;
+                                examSession.ShiftId = await _shiftRepo.GetExamShiftIdByName(reader.GetValue(2).ToString());
+                                examSession.ShiftName = reader.GetValue(2).ToString();
 
-        //                        examSession.ExamDate = examDate;
+                                // Validate course existence
+                                if (examSession.ShiftId == null)
+                                {
+                                    return BadRequest($"The shift '{examSession.ShiftName}' doesn't exist in the database");
+                                }
 
-        //                        // Store the validated exam session
-        //                        examSessions.Add(examSession);
+                                // Store the validated exam session
+                                examSessions.Add(examSession);
 
-        //                    }
-        //                } while (reader.NextResult());
-        //            }
-        //        }
-        //        if (examSessions.Count == 0)
-        //        {
-        //            return BadRequest("The uploaded file is in the wrong format. Please ensure that the first row is a header, and subsequent rows represent data. Each row should contain three properties of the exam session data: 1) Course 2) Exam Format 3) Exam Date.");
-        //        }
-        //        // Process the validated exam sessions
-        //        foreach (var examSession in examSessions)
-        //        {
-        //            bool result = await _examRepo.AddExamSessionAsync(examSession);
+                            }
+                        } while (reader.NextResult());
+                    }
+                }
+                if (examSessions.Count == 0)
+                {
+                    return BadRequest("The uploaded file is in the wrong format. Please ensure that the first row is a header, and subsequent rows represent data. Each row should contain three properties of the exam session data: 1) Course 2) Exam Date 3) Exam Shift");
+                }
+                // Process the validated exam sessions
+                foreach (var examSession in examSessions)
+                {
+                    bool result = await _examRepo.AddExamSessionAsync(examSession);
 
-        //            // Generate messages based on the processing result
-        //            if (result)
-        //            {
-        //                msg += $"Successfully added exam sessions for course '{examSession.CourseName}', format '{examSession.ExamFormat}' on '{examSession.ExamDate:dd/MM/yyyy}'\n";
-        //            }
-        //            else
-        //            {
-        //                msg += $"Failed to add exam sessions for course '{examSession.CourseName}', format '{examSession.ExamFormat}' on '{examSession.ExamDate:dd/MM/yyyy}'\n";
-        //            }
-        //        }
+                    // Generate messages based on the processing result
+                    if (result)
+                    {
+                        msg += $"Successfully added exam sessions for course '{examSession.CourseName}', on '{examSession.ExamDate:dd/MM/yyyy}' at '{examSession.ShiftName}'\n";
+                    }
+                    else
+                    {
+                        msg += $"Failed to add exam sessions for course '{examSession.CourseName}', on '{examSession.ExamDate:dd/MM/yyyy}' at '{examSession.ShiftName}'\n";
+                    }
+                }
 
-        //        // Return success or error message
-        //        return Ok(msg);
-        //    }
+                // Return success or error message
+                return Ok(msg);
+            }
 
-        //    // Return a BadRequest response for an empty file
-        //    return BadRequest("The uploaded file is empty");
-        //}
+            // Return a BadRequest response for an empty file
+            return BadRequest("The uploaded file is empty");
+        }
 
         // Helper
         [NonAction]
-        private async Task<DataTable> GetAllExamSessionsData()
+        private async Task<DataTable> GetAllExamSessionsData(Guid periodId)
         {
             DataTable dt = new DataTable();
             dt.TableName = "ExamSessionsData";
@@ -518,7 +538,7 @@ namespace SWP391_ESMS.Controllers
             dt.Columns.Add("IsPassed", typeof(bool));
             dt.Columns.Add("IsPaid", typeof(bool));
 
-            var examSessions = await _examRepo.GetAllExamSessionsAsync();
+            var examSessions = await _examRepo.GetExamSessionsByPeriodAsync(periodId);
             if (examSessions.Count > 0)
             {
                 foreach (var exam in examSessions)

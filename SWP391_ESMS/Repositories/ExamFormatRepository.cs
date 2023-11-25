@@ -58,12 +58,27 @@ namespace SWP391_ESMS.Repositories
             return _mapper.Map<ExamFormatModel>(examFormat);
         }
 
-        public async Task<bool> IsExamFormatUniqueAsync(string examFormatCode, string examFormatName)
+        public async Task<bool> IsExamFormatUniqueAsync(string? examFormatCode, string? examFormatName)
         {
-            var existingFormat = await _dbContext.ExamFormats
-                .FirstOrDefaultAsync(ef => ef.ExamFormatCode == examFormatCode || ef.ExamFormatName == examFormatName);
-
-            return existingFormat == null;
+            if (examFormatCode != null)
+            {
+                var existingFormat = await _dbContext.ExamFormats
+                .FirstOrDefaultAsync(ef => ef.ExamFormatCode == examFormatCode);
+                if (existingFormat != null)
+                {
+                    return false;
+                }
+            }
+            if (examFormatName != null)
+            {
+                var existingFormat = await _dbContext.ExamFormats
+                .FirstOrDefaultAsync(ef => ef.ExamFormatName == examFormatName);
+                if (existingFormat != null)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public async Task<bool> UpdateExamFormatAsync(ExamFormatModel model)

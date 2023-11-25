@@ -63,10 +63,11 @@ namespace SWP391_ESMS.Repositories
             return _mapper.Map<ExamShiftModel>(examShift);
         }
 
-        public async Task<Guid> GetExamShiftIdByName(string examShiftName)
+        public async Task<Guid?> GetExamShiftIdByName(string? examShiftName)
         {
             var examShift = await _dbContext.ExamShifts.FirstOrDefaultAsync(s => s.ShiftName == examShiftName);
-            return examShift!.ShiftId;
+            if (examShift == null) { return null; }
+            return examShift.ShiftId;
         }
 
         public async Task<Boolean> UpdateExamShiftAsync(ExamShiftModel model)

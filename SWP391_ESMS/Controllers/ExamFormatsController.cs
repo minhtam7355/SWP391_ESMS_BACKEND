@@ -78,22 +78,31 @@ namespace SWP391_ESMS.Controllers
         {
             try
             {
-                if (await _formatRepo.IsExamFormatUniqueAsync(model.ExamFormatCode!, model.ExamFormatName!))
+                var examFormat = await _formatRepo.GetExamFormatByIdAsync(model.ExamFormatId);
+                if (model.ExamFormatCode != examFormat.ExamFormatCode)
                 {
-                    bool result = await _formatRepo.UpdateExamFormatAsync(model);
+                    if (!await _formatRepo.IsExamFormatUniqueAsync(model.ExamFormatCode!, null))
+                    {
+                        return BadRequest("Exam format code already exists. Please choose a unique code");
+                    }
+                }
+                if (model.ExamFormatName != examFormat.ExamFormatName)
+                {
+                    if (!await _formatRepo.IsExamFormatUniqueAsync(null, model.ExamFormatName!))
+                    {
+                        return BadRequest("Exam format name already exists. Please choose a unique name");
+                    }
+                }
 
-                    if (result)
-                    {
-                        return Ok("Updated Successfully");
-                    }
-                    else
-                    {
-                        return BadRequest("Failed to update the exam format");
-                    }
+                bool result = await _formatRepo.UpdateExamFormatAsync(model);
+
+                if (result)
+                {
+                    return Ok("Updated Successfully");
                 }
                 else
                 {
-                    return BadRequest("Exam format code or name already exists. Please choose a unique code and name.");
+                    return BadRequest("Failed to update the exam format");
                 }
             }
             catch (Exception ex)

@@ -258,7 +258,8 @@ namespace SWP391_ESMS.Controllers
             Response += "<p>I hope this email finds you well. We are writing to provide you with essential information about your upcoming exam.</p>";
             Response += "<strong>Exam Details:</strong>";
             Response += "<ul>";
-            Response += $"<li>Course Name: {examSession.CourseName}</li>";
+            Response += $"<li>Period: {examSession.ExamPeriodName}</li>";
+            Response += $"<li>Course: {examSession.CourseName}</li>";
             Response += $"<li>Exam Format: {examSession.ExamFormatCode} - {examSession.ExamFormatName}</li>";
             Response += $"<li>Exam Date and Time: {formattedExamDate}, {examSession.ShiftName}</li>";
             Response += $"<li>Exam Location: {examSession.RoomName}</li>";

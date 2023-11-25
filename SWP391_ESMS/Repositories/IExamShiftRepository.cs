@@ -14,6 +14,6 @@ namespace SWP391_ESMS.Repositories
 
         public Task<Boolean> DeleteExamShiftAsync(Guid id);
 
-        public Task<Guid> GetExamShiftIdByName(string examShiftName);
+        public Task<Guid?> GetExamShiftIdByName(string? examShiftName);
     }
 }

@@ -14,6 +14,6 @@ namespace SWP391_ESMS.Repositories
 
         public Task<Boolean> DeleteExamFormatAsync(Guid id);
 
-        public Task<Boolean> IsExamFormatUniqueAsync(string examFormatCode, string examFormatName);
+        public Task<Boolean> IsExamFormatUniqueAsync(string? examFormatCode, string? examFormatName);
     }
 }
