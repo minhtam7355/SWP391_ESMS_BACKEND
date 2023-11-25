@@ -84,21 +84,24 @@ namespace SWP391_ESMS.Repositories
                     }
                     request.ExamSession!.TeacherId = request.TeacherId;
 
-                    // Get the rooms occupied by exams on the specified date and shift
-                    var occupiedRooms = await _dbContext.ExamSessions
-                        .Where(es => es.ExamDate == request.ExamSession.ExamDate && es.ShiftId == request.ExamSession.ShiftId && es.RoomId != null)
-                        .Select(es => es.Room)
-                        .ToListAsync();
+                    if (request.ExamSession.RoomId == null)
+                    {
+                        // Get the rooms occupied by exams on the specified date and shift
+                        var occupiedRooms = await _dbContext.ExamSessions
+                            .Where(es => es.ExamDate == request.ExamSession.ExamDate && es.ShiftId == request.ExamSession.ShiftId && es.RoomId != null)
+                            .Select(es => es.Room)
+                            .ToListAsync();
 
-                    // Get all rooms
-                    var allRooms = await _dbContext.ExamRooms.ToListAsync();
+                        // Get all rooms
+                        var allRooms = await _dbContext.ExamRooms.ToListAsync();
 
-                    // Get available rooms by excluding occupied rooms
-                    var availableRooms = allRooms
-                        .Except(occupiedRooms)
-                        .OrderBy(room => room!.RoomName)
-                        .ToList();
-                    request.ExamSession!.RoomId = availableRooms.First()!.RoomId;
+                        // Get available rooms by excluding occupied rooms
+                        var availableRooms = allRooms
+                            .Except(occupiedRooms)
+                            .OrderBy(room => room!.RoomName)
+                            .ToList();
+                        request.ExamSession!.RoomId = availableRooms.First()!.RoomId;
+                    }
 
                     await _dbContext.SaveChangesAsync();
                     return true;

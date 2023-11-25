@@ -221,11 +221,14 @@ namespace SWP391_ESMS.Controllers
             {
                 var request = await _requestRepo.GetRequestByIdAsync(id);
                 var examSession = await _examRepo.GetExamSessionByIdAsync(request.ExamSessionId ?? Guid.Empty);
-                bool areAvailableRooms = await _roomRepo.GetAvailableRoomsAsync(examSession.ExamDate, examSession.ShiftId);
-
-                if (!areAvailableRooms)
+                if (examSession.RoomId == null)
                 {
-                    return BadRequest("No available rooms for the proctoring request");
+                    bool areAvailableRooms = await _roomRepo.GetAvailableRoomsAsync(examSession.ExamDate, examSession.ShiftId);
+
+                    if (!areAvailableRooms)
+                    {
+                        return BadRequest("No available rooms for the proctoring request");
+                    }
                 }
 
                 bool result = await _requestRepo.ApproveProctoringRequestAsync(id);
