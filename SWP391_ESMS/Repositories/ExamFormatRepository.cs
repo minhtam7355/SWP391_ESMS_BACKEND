@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using SWP391_ESMS.Data;
+using SWP391_ESMS.Models.Domain;
 using SWP391_ESMS.Models.ViewModels;
 
 namespace SWP391_ESMS.Repositories
@@ -16,14 +17,33 @@ namespace SWP391_ESMS.Repositories
             _mapper = mapper;
         }
 
-        public Task<bool> AddExamFormatAsync(ExamFormatModel model)
+        public async Task<bool> AddExamFormatAsync(ExamFormatModel model)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var newFormat = _mapper.Map<ExamFormat>(model);
+                newFormat.ExamFormatId = Guid.NewGuid();
+                await _dbContext.ExamFormats.AddAsync(newFormat);
+                await _dbContext.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
-        public Task<bool> DeleteExamFormatAsync(Guid id)
+        public async Task<bool> DeleteExamFormatAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var deleteFormat = await _dbContext.ExamFormats.FindAsync(id);
+            if (deleteFormat != null)
+            {
+                _dbContext.ExamFormats.Remove(deleteFormat);
+                await _dbContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
 
         public async Task<List<ExamFormatModel>> GetAllExamFormatsAsync()
@@ -32,14 +52,31 @@ namespace SWP391_ESMS.Repositories
             return _mapper.Map<List<ExamFormatModel>>(examFormats);
         }
 
-        public Task<ExamFormatModel> GetExamFormatByIdAsync(Guid id)
+        public async Task<ExamFormatModel> GetExamFormatByIdAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var examFormat = await _dbContext.ExamFormats.FindAsync(id);
+            return _mapper.Map<ExamFormatModel>(examFormat);
         }
 
-        public Task<bool> UpdateExamFormatAsync(ExamFormatModel model)
+        public async Task<bool> IsExamFormatUniqueAsync(string examFormatCode, string examFormatName)
         {
-            throw new NotImplementedException();
+            var existingFormat = await _dbContext.ExamFormats
+                .FirstOrDefaultAsync(ef => ef.ExamFormatCode == examFormatCode || ef.ExamFormatName == examFormatName);
+
+            return existingFormat == null;
+        }
+
+        public async Task<bool> UpdateExamFormatAsync(ExamFormatModel model)
+        {
+            var existingFormat = await _dbContext.ExamFormats.FindAsync(model.ExamFormatId);
+
+            if (existingFormat != null)
+            {
+                _mapper.Map(model, existingFormat);
+                await _dbContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
     }
 }

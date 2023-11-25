@@ -58,7 +58,7 @@ namespace SWP391_ESMS.Controllers
                 }
                 if (model.StartDate <= DateTime.Now.Date)
                 {
-                    return BadRequest($"The exam period start date '{String.Format("{0:dd/MM/yyyy}", model.StartDate)}' is not allowed. Exam period start date can be scheduled starting from '{String.Format("{0:dd/MM/yyyy}", Convert.ToDateTime(model.StartDate).AddDays(1))}'");
+                    return BadRequest($"The exam period start date '{String.Format("{0:dd/MM/yyyy}", model.StartDate)}' is not allowed. Exam period start date can be scheduled starting from '{String.Format("{0:dd/MM/yyyy}", DateTime.Now.Date.AddDays(1))}'");
                 }
                 if (model.EndDate <= model.StartDate)
                 {

@@ -89,16 +89,14 @@ namespace SWP391_ESMS.Controllers
                 }
 
                 var examPeriod = await _periodRepo.GetExamPeriodByIdAsync(model.ExamPeriodId ?? Guid.Empty);
-                if (model.ExamDate < examPeriod!.StartDate || model.ExamDate > examPeriod!.EndDate)
-                {
-                    return BadRequest($"The exam date '{String.Format("{0:dd/MM/yyyy}", model.ExamDate)}' is not allowed. Exams can be scheduled starting from '{String.Format("{0:dd/MM/yyyy}", examPeriod.StartDate)}' and end at '{String.Format("{0:dd/MM/yyyy}", examPeriod.EndDate)}'");
-                }
-
                 DateTime minAllowedDate = await GetMinAllowedSchedulingDateAsync();
-
-                if (model.ExamDate < minAllowedDate)
+                if (minAllowedDate > examPeriod!.EndDate)
                 {
-                    return BadRequest($"The exam date '{String.Format("{0:dd/MM/yyyy}", model.ExamDate)}' is not allowed. Exams can be scheduled starting from '{minAllowedDate.ToString("dd/MM/yyyy")}'");
+                    return BadRequest("The scheduling period for exams has ended");
+                }
+                if (model.ExamDate < minAllowedDate || model.ExamDate > examPeriod!.EndDate)
+                {
+                    return BadRequest($"The exam date '{String.Format("{0:dd/MM/yyyy}", model.ExamDate)}' is not allowed. Exams can be scheduled starting from '{minAllowedDate.ToString("dd/MM/yyyy")}' and end at '{String.Format("{0:dd/MM/yyyy}", examPeriod.EndDate)}'");
                 }
 
                 bool result = await _examRepo.AddExamSessionAsync(model);
